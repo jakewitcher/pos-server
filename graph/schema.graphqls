@@ -1,0 +1,234 @@
+type Customer {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    contactInfo: ContactInfo!
+}
+
+type ContactInfo {
+    phoneNumber: String!
+    emailAddress: String!
+}
+
+interface Employee {
+    id: ID!
+    storeId: ID!
+    firstName: String!
+    lastName: String!
+    password: String!
+}
+
+type Manager implements Employee {
+    id: ID!
+    storeId: ID!
+    firstName: String!
+    lastName: String!
+    password: String!
+}
+
+type SalesAssociate implements Employee {
+    id: ID!
+    storeId: ID!
+    firstName: String!
+    lastName: String!
+    password: String!
+}
+
+type InventoryItem {
+    id: ID!
+    description: String!
+    cost: Float!
+    retail: Float!
+    manufacturer: Manufacturer!
+}
+
+type Manufacturer {
+    id: ID!
+    name: String!
+}
+
+type Store {
+    id: ID!
+    location: Location!
+    manager: Manager!
+    salesAssociates: [SalesAssociate!]!
+    inventory: [InventoryItem!]!
+}
+
+type Location {
+    street: String!
+    city: String!
+    state: String!
+    zipcode: String!
+}
+
+type Order {
+    id: ID!
+    storeId: ID!
+    customer: Customer!
+    salesAssociate: SalesAssociate!
+    lineItems: [LineItem!]!
+}
+
+type LineItem {
+    description: String!
+    retail: Float!
+    quantity: Int!
+}
+
+type Query {
+    customer(input: ID!): Customer
+    customers: [Customer!]!
+
+    employee(input: ID!): Employee
+    employees: [Employee!]!
+
+    store(input: ID!): Store
+    stores: [Store!]!
+
+    order(input: ID!): Order
+    orders: [Order!]!
+}
+
+input NewCustomerInput {
+    firstName: String!
+    lastName: String!
+    contactInfo: ContactInfoInput!
+}
+
+input CustomerInput {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    contactInfo: ContactInfoInput!
+}
+
+input ContactInfoInput {
+    phoneNumber: String!
+    emailAddress: String!
+}
+
+input NewManagerInput {
+    storeId: ID!
+    firstName: String!
+    lastName: String!
+}
+
+input ManagerInput {
+    id: ID!
+    storeId: ID!
+    firstName: String!
+    lastName: String!
+}
+
+input NewSalesAssociateInput {
+    storeId: ID!
+    firstName: String!
+    lastName: String!
+}
+
+input SalesAssociateInput {
+    id: ID!
+    storeId: ID!
+    firstName: String!
+    lastName: String!
+}
+
+input NewOrderInput {
+    customerId: ID!
+    storeId: ID!
+    salesAssociateId: ID!
+    lineItems: [LineItemInput!]!
+}
+
+input OrderInput {
+    id: ID!
+    customerId: ID!
+    storeId: ID!
+    salesAssociateId: ID!
+    lineItems: [LineItemInput!]!
+}
+
+input LineItemInput {
+    description: String!
+    retail: Float!
+    quantity: Int!
+}
+
+input NewInventoryItemInput {
+    description: String!
+    cost: Float!
+    retail: Float!
+    manufacturer: ManufacturerInput!
+}
+
+input InventoryItemInput {
+    id: ID!
+    description: String!
+    cost: Float!
+    retail: Float!
+    manufacturer: ManufacturerInput!
+}
+
+input NewManufacturerInput {
+    name: String!
+}
+
+input ManufacturerInput {
+    id: ID!
+    name: String!
+}
+
+input NewStoreInput {
+    location: NewLocationInput!
+}
+
+input NewLocationInput {
+    street: String!
+    city: String!
+    state: String!
+    zipcode: String!
+}
+
+input StoreInput {
+    id: ID!
+    location: LocationInput!
+}
+
+input LocationInput {
+    id: ID!
+    street: String!
+    city: String!
+    state: String!
+    zipcode: String!
+}
+
+type Mutation {
+    createCustomer(input: NewCustomerInput!): Customer!
+    updateCustomer(input: CustomerInput!): Customer
+    deleteCustomer(input: ID!): Customer
+
+    createManager(input: NewManagerInput!): Manager!
+    updateManager(input: ManagerInput!): Manager
+    deleteManager(input: ID!): Manager
+
+    createSalesAssociate(input: NewSalesAssociateInput!): SalesAssociate!
+    updateSalesAssociate(input: SalesAssociateInput!): SalesAssociate
+    deleteSalesAssociate(input: ID!): SalesAssociate
+
+    createOrder(input: NewOrderInput!): Order!
+    updateOrder(input: OrderInput!): Order
+    deleteOrder(input: ID!): Order
+
+    createManufacturer(input: NewManufacturerInput!): Manufacturer!
+    updateManufacturer(input: ManufacturerInput!): Manufacturer
+    deleteManufacturer(input: ID!): Manufacturer
+
+    createInventoryItem(input: NewInventoryItemInput!): InventoryItem!
+    updateInventoryItem(input: InventoryItemInput!): InventoryItem
+    deleteInventoryItem(input: ID!): InventoryItem
+
+    createStore(input: NewStoreInput!): Store!
+    updateStore(input: StoreInput!): Store
+    deleteStore(input: ID!): Store
+}
