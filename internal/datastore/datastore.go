@@ -1,6 +1,12 @@
 package datastore
 
-var Store Datastore
+import (
+	"github.com/jakewitcher/pos-server/graph/model"
+)
 
-type Datastore interface {
+var Customers CustomerProvider
+
+type CustomerProvider interface {
+	FindCustomerById(id string) *model.Customer
+	GetAllCustomers() []*model.Customer
 }

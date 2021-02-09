@@ -16,7 +16,7 @@ import (
 const defaultPort = "8080"
 
 func init() {
-	datastore.Store = sqlite.NewDatastore()
+	datastore.Customers = sqlite.NewCustomerProvider()
 }
 
 func main() {

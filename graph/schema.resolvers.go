@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"github.com/jakewitcher/pos-server/internal/datastore"
 
 	"github.com/jakewitcher/pos-server/graph/generated"
 	"github.com/jakewitcher/pos-server/graph/model"
@@ -96,11 +97,11 @@ func (r *mutationResolver) DeleteStore(ctx context.Context, input string) (*mode
 }
 
 func (r *queryResolver) Customer(ctx context.Context, input string) (*model.Customer, error) {
-	panic(fmt.Errorf("not implemented"))
+	return datastore.Customers.FindCustomerById(input), nil
 }
 
 func (r *queryResolver) Customers(ctx context.Context) ([]*model.Customer, error) {
-	panic(fmt.Errorf("not implemented"))
+	return datastore.Customers.GetAllCustomers(), nil
 }
 
 func (r *queryResolver) Employee(ctx context.Context, input string) (model.Employee, error) {
