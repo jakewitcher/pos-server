@@ -13,15 +13,15 @@ import (
 )
 
 func (r *mutationResolver) CreateCustomer(ctx context.Context, input model.NewCustomerInput) (*model.Customer, error) {
-	panic(fmt.Errorf("not implemented"))
+	return datastore.Customers.CreateCustomer(input), nil
 }
 
 func (r *mutationResolver) UpdateCustomer(ctx context.Context, input model.CustomerInput) (*model.Customer, error) {
-	panic(fmt.Errorf("not implemented"))
+	return datastore.Customers.UpdateCustomer(input), nil
 }
 
 func (r *mutationResolver) DeleteCustomer(ctx context.Context, input string) (*model.Customer, error) {
-	panic(fmt.Errorf("not implemented"))
+	return datastore.Customers.DeleteCustomer(input), nil
 }
 
 func (r *mutationResolver) CreateManager(ctx context.Context, input model.NewManagerInput) (*model.Manager, error) {

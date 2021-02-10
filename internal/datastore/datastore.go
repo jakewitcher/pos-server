@@ -7,6 +7,9 @@ import (
 var Customers CustomerProvider
 
 type CustomerProvider interface {
-	FindCustomerById(id string) *model.Customer
+	CreateCustomer(newCustomer model.NewCustomerInput) *model.Customer
+	UpdateCustomer(updatedCustomer model.CustomerInput) *model.Customer
+	DeleteCustomer(customerId string) *model.Customer
+	FindCustomerById(customerId string) *model.Customer
 	GetAllCustomers() []*model.Customer
 }

@@ -6,21 +6,21 @@ import (
 )
 
 type CustomerEntity struct {
-	Id            int    `json:"id"`
+	Id            int64    `json:"id"`
 	FirstName     string `json:"first_name"`
 	LastName      string `json:"last_name"`
-	ContactInfoId int    `json:"contact_info_id"`
+	ContactInfoId int64    `json:"contact_info_id"`
 }
 
 type ContactInfoEntity struct {
-	Id           int    `json:"id"`
+	Id           int64    `json:"id"`
 	PhoneNumber  string `json:"phone_number"`
 	EmailAddress string `json:"email_address"`
 }
 
 func (c *CustomerEntity) ToDTO(contactInfo *ContactInfoEntity) *model.Customer {
 	return &model.Customer{
-		ID:          strconv.Itoa(c.Id),
+		ID:          strconv.FormatInt(c.Id, 10),
 		FirstName:   c.FirstName,
 		LastName:    c.LastName,
 		ContactInfo: contactInfo.ToDTO(),
