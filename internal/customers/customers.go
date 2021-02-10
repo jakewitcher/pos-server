@@ -6,14 +6,14 @@ import (
 )
 
 type CustomerEntity struct {
-	Id            int64    `json:"id"`
+	Id            int64  `json:"id"`
 	FirstName     string `json:"first_name"`
 	LastName      string `json:"last_name"`
-	ContactInfoId int64    `json:"contact_info_id"`
+	ContactInfoId int64  `json:"contact_info_id"`
 }
 
 type ContactInfoEntity struct {
-	Id           int64    `json:"id"`
+	Id           int64  `json:"id"`
 	PhoneNumber  string `json:"phone_number"`
 	EmailAddress string `json:"email_address"`
 }

@@ -58,21 +58,6 @@ type LineItemInput struct {
 	Quantity    int     `json:"quantity"`
 }
 
-type Location struct {
-	Street  string `json:"street"`
-	City    string `json:"city"`
-	State   string `json:"state"`
-	Zipcode string `json:"zipcode"`
-}
-
-type LocationInput struct {
-	ID      string `json:"id"`
-	Street  string `json:"street"`
-	City    string `json:"city"`
-	State   string `json:"state"`
-	Zipcode string `json:"zipcode"`
-}
-
 type Manager struct {
 	ID        string `json:"id"`
 	StoreID   string `json:"storeId"`
@@ -113,13 +98,6 @@ type NewInventoryItemInput struct {
 	Manufacturer *ManufacturerInput `json:"manufacturer"`
 }
 
-type NewLocationInput struct {
-	Street  string `json:"street"`
-	City    string `json:"city"`
-	State   string `json:"state"`
-	Zipcode string `json:"zipcode"`
-}
-
 type NewManagerInput struct {
 	StoreID   string `json:"storeId"`
 	FirstName string `json:"firstName"`
@@ -144,7 +122,14 @@ type NewSalesAssociateInput struct {
 }
 
 type NewStoreInput struct {
-	Location *NewLocationInput `json:"location"`
+	Location *StoreLocationInput `json:"location"`
+}
+
+type NewStoreLocationInput struct {
+	Street  string `json:"street"`
+	City    string `json:"city"`
+	State   string `json:"state"`
+	ZipCode string `json:"zipCode"`
 }
 
 type Order struct {
@@ -182,13 +167,29 @@ type SalesAssociateInput struct {
 
 type Store struct {
 	ID              string            `json:"id"`
-	Location        *Location         `json:"location"`
+	Location        *StoreLocation    `json:"location"`
 	Manager         *Manager          `json:"manager"`
 	SalesAssociates []*SalesAssociate `json:"salesAssociates"`
 	Inventory       []*InventoryItem  `json:"inventory"`
 }
 
 type StoreInput struct {
-	ID       string         `json:"id"`
-	Location *LocationInput `json:"location"`
+	ID       string              `json:"id"`
+	Location *StoreLocationInput `json:"location"`
+}
+
+type StoreLocation struct {
+	ID      string `json:"id"`
+	Street  string `json:"street"`
+	City    string `json:"city"`
+	State   string `json:"state"`
+	ZipCode string `json:"zipCode"`
+}
+
+type StoreLocationInput struct {
+	ID      string `json:"id"`
+	Street  string `json:"street"`
+	City    string `json:"city"`
+	State   string `json:"state"`
+	ZipCode string `json:"zipCode"`
 }

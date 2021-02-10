@@ -18,6 +18,8 @@ const defaultPort = "8080"
 func init() {
 	db := sqlite.OpenConnection()
 	datastore.Customers = sqlite.NewCustomerProvider(db)
+	datastore.Stores = sqlite.NewStoreProvider(db)
+	datastore.StoreLocations = sqlite.NewStoreLocationProvider(db)
 }
 
 func main() {

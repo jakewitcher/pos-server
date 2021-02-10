@@ -71,30 +71,29 @@ func (p *CustomerProvider) insertNewContactInfo(newContactInfo *model.ContactInf
 func (p *CustomerProvider) UpdateCustomer(updatedCustomer model.CustomerInput) *model.Customer {
 	updatedContactInfo := updatedCustomer.ContactInfo
 	contactInfoId := p.getContactInfoIdByCustomerId(updatedCustomer)
-
-	p.updateContactInfo(updatedContactInfo, contactInfoId)
-	p.updateCustomer(updatedCustomer)
-
-	contactInfo := &customers.ContactInfoEntity{
-		Id: contactInfoId,
-		EmailAddress: updatedContactInfo.EmailAddress,
-		PhoneNumber: updatedContactInfo.PhoneNumber,
-	}
-
-	customerId, err := strconv.Atoi(updatedCustomer.ID)
+	customerId, err := strconv.ParseInt(updatedCustomer.ID, 10, 64)
 	checkError(err)
 
+	p.updateContactInfo(updatedContactInfo, contactInfoId)
+	p.updateCustomer(updatedCustomer, customerId)
+
+	contactInfo := &customers.ContactInfoEntity{
+		Id:           contactInfoId,
+		EmailAddress: updatedContactInfo.EmailAddress,
+		PhoneNumber:  updatedContactInfo.PhoneNumber,
+	}
+
 	customer := &customers.CustomerEntity{
-		Id: int64(customerId),
-		FirstName: updatedCustomer.FirstName,
-		LastName: updatedCustomer.LastName,
+		Id:            customerId,
+		FirstName:     updatedCustomer.FirstName,
+		LastName:      updatedCustomer.LastName,
 		ContactInfoId: contactInfoId,
 	}
 
 	return customer.ToDTO(contactInfo)
 }
 
-func (p *CustomerProvider) updateCustomer(updatedCustomer model.CustomerInput) {
+func (p *CustomerProvider) updateCustomer(updatedCustomer model.CustomerInput, customerId int64) {
 	statement, err := p.db.Prepare(
 		`UPDATE Customer
 			   SET FirstName = ?,
@@ -103,9 +102,6 @@ func (p *CustomerProvider) updateCustomer(updatedCustomer model.CustomerInput) {
 	checkError(err)
 
 	defer statement.Close()
-
-	customerId, err := strconv.Atoi(updatedCustomer.ID)
-	checkError(err)
 
 	_, err = statement.Exec(updatedCustomer.FirstName, updatedCustomer.LastName, customerId)
 	checkError(err)
@@ -120,7 +116,7 @@ func (p *CustomerProvider) updateContactInfo(updatedContactInfo *model.ContactIn
 	checkError(err)
 
 	defer statement.Close()
-	
+
 	_, err = statement.Exec(updatedContactInfo.EmailAddress, updatedContactInfo.PhoneNumber, contactInfoId)
 	checkError(err)
 }
@@ -137,7 +133,7 @@ func (p *CustomerProvider) getContactInfoIdByCustomerId(updatedCustomer model.Cu
 
 	err = row.Scan(&contactInfoId)
 	checkError(err)
-	
+
 	return contactInfoId
 }
 
@@ -205,12 +201,14 @@ func (p *CustomerProvider) findCustomerAndContactInfoByCustomerId(customerId str
 	return customer, contactInfo
 }
 
-func (p *CustomerProvider) GetAllCustomers() []*model.Customer {
+func (p *CustomerProvider) FindAllCustomers() []*model.Customer {
 	statement, err := p.db.Prepare(
 		`SELECT C.Id, C.FirstName, C.LastName, CI.EmailAddress, CI.PhoneNumber
 			   FROM Customer C INNER JOIN ContactInfo CI 
 			   ON C.ContactInfoId = CI.Id`)
 	checkError(err)
+
+	defer statement.Close()
 
 	rows, err := statement.Query()
 	checkError(err)

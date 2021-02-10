@@ -6,10 +6,10 @@ package graph
 import (
 	"context"
 	"fmt"
-	"github.com/jakewitcher/pos-server/internal/datastore"
 
 	"github.com/jakewitcher/pos-server/graph/generated"
 	"github.com/jakewitcher/pos-server/graph/model"
+	"github.com/jakewitcher/pos-server/internal/datastore"
 )
 
 func (r *mutationResolver) CreateCustomer(ctx context.Context, input model.NewCustomerInput) (*model.Customer, error) {
@@ -84,6 +84,18 @@ func (r *mutationResolver) DeleteInventoryItem(ctx context.Context, input string
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *mutationResolver) CreateStoreLocation(ctx context.Context, input model.NewStoreLocationInput) (*model.StoreLocation, error) {
+	return datastore.StoreLocations.CreateStoreLocation(input), nil
+}
+
+func (r *mutationResolver) UpdateStoreLocation(ctx context.Context, input model.StoreLocationInput) (*model.StoreLocation, error) {
+	return datastore.StoreLocations.UpdateStoreLocation(input), nil
+}
+
+func (r *mutationResolver) DeleteStoreLocation(ctx context.Context, input string) (*model.StoreLocation, error) {
+	return datastore.StoreLocations.DeleteStoreLocation(input), nil
+}
+
 func (r *mutationResolver) CreateStore(ctx context.Context, input model.NewStoreInput) (*model.Store, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -101,7 +113,7 @@ func (r *queryResolver) Customer(ctx context.Context, input string) (*model.Cust
 }
 
 func (r *queryResolver) Customers(ctx context.Context) ([]*model.Customer, error) {
-	return datastore.Customers.GetAllCustomers(), nil
+	return datastore.Customers.FindAllCustomers(), nil
 }
 
 func (r *queryResolver) Employee(ctx context.Context, input string) (model.Employee, error) {
@@ -118,6 +130,14 @@ func (r *queryResolver) Store(ctx context.Context, input string) (*model.Store, 
 
 func (r *queryResolver) Stores(ctx context.Context) ([]*model.Store, error) {
 	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) StoreLocation(ctx context.Context, input string) (*model.StoreLocation, error) {
+	return datastore.StoreLocations.FindStoreLocationById(input), nil
+}
+
+func (r *queryResolver) StoreLocations(ctx context.Context) ([]*model.StoreLocation, error) {
+	return datastore.StoreLocations.FindAllStoreLocations(), nil
 }
 
 func (r *queryResolver) Order(ctx context.Context, input string) (*model.Order, error) {

@@ -49,17 +49,18 @@ type Manufacturer {
 
 type Store {
     id: ID!
-    location: Location!
+    location: StoreLocation!
     manager: Manager!
     salesAssociates: [SalesAssociate!]!
     inventory: [InventoryItem!]!
 }
 
-type Location {
+type StoreLocation {
+    id: ID!
     street: String!
     city: String!
     state: String!
-    zipcode: String!
+    zipCode: String!
 }
 
 type Order {
@@ -85,6 +86,9 @@ type Query {
 
     store(input: ID!): Store
     stores: [Store!]!
+
+    storeLocation(input: ID!): StoreLocation
+    storeLocations: [StoreLocation!]!
 
     order(input: ID!): Order
     orders: [Order!]!
@@ -180,27 +184,27 @@ input ManufacturerInput {
 }
 
 input NewStoreInput {
-    location: NewLocationInput!
+    location: StoreLocationInput!
 }
 
-input NewLocationInput {
+input NewStoreLocationInput {
     street: String!
     city: String!
     state: String!
-    zipcode: String!
+    zipCode: String!
 }
 
 input StoreInput {
     id: ID!
-    location: LocationInput!
+    location: StoreLocationInput!
 }
 
-input LocationInput {
+input StoreLocationInput {
     id: ID!
     street: String!
     city: String!
     state: String!
-    zipcode: String!
+    zipCode: String!
 }
 
 type Mutation {
@@ -227,6 +231,10 @@ type Mutation {
     createInventoryItem(input: NewInventoryItemInput!): InventoryItem!
     updateInventoryItem(input: InventoryItemInput!): InventoryItem
     deleteInventoryItem(input: ID!): InventoryItem
+
+    createStoreLocation(input: NewStoreLocationInput!): StoreLocation!
+    updateStoreLocation(input: StoreLocationInput!): StoreLocation
+    deleteStoreLocation(input: ID!): StoreLocation
 
     createStore(input: NewStoreInput!): Store!
     updateStore(input: StoreInput!): Store

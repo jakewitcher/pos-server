@@ -17,4 +17,3 @@ func CreateFromCents(amount int) USD {
 		amount: amount,
 	}
 }
-

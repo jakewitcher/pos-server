@@ -70,13 +70,6 @@ type ComplexityRoot struct {
 		Retail      func(childComplexity int) int
 	}
 
-	Location struct {
-		City    func(childComplexity int) int
-		State   func(childComplexity int) int
-		Street  func(childComplexity int) int
-		Zipcode func(childComplexity int) int
-	}
-
 	Manager struct {
 		FirstName func(childComplexity int) int
 		ID        func(childComplexity int) int
@@ -98,6 +91,7 @@ type ComplexityRoot struct {
 		CreateOrder          func(childComplexity int, input model.NewOrderInput) int
 		CreateSalesAssociate func(childComplexity int, input model.NewSalesAssociateInput) int
 		CreateStore          func(childComplexity int, input model.NewStoreInput) int
+		CreateStoreLocation  func(childComplexity int, input model.NewStoreLocationInput) int
 		DeleteCustomer       func(childComplexity int, input string) int
 		DeleteInventoryItem  func(childComplexity int, input string) int
 		DeleteManager        func(childComplexity int, input string) int
@@ -105,6 +99,7 @@ type ComplexityRoot struct {
 		DeleteOrder          func(childComplexity int, input string) int
 		DeleteSalesAssociate func(childComplexity int, input string) int
 		DeleteStore          func(childComplexity int, input string) int
+		DeleteStoreLocation  func(childComplexity int, input string) int
 		UpdateCustomer       func(childComplexity int, input model.CustomerInput) int
 		UpdateInventoryItem  func(childComplexity int, input model.InventoryItemInput) int
 		UpdateManager        func(childComplexity int, input model.ManagerInput) int
@@ -112,6 +107,7 @@ type ComplexityRoot struct {
 		UpdateOrder          func(childComplexity int, input model.OrderInput) int
 		UpdateSalesAssociate func(childComplexity int, input model.SalesAssociateInput) int
 		UpdateStore          func(childComplexity int, input model.StoreInput) int
+		UpdateStoreLocation  func(childComplexity int, input model.StoreLocationInput) int
 	}
 
 	Order struct {
@@ -123,14 +119,16 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Customer  func(childComplexity int, input string) int
-		Customers func(childComplexity int) int
-		Employee  func(childComplexity int, input string) int
-		Employees func(childComplexity int) int
-		Order     func(childComplexity int, input string) int
-		Orders    func(childComplexity int) int
-		Store     func(childComplexity int, input string) int
-		Stores    func(childComplexity int) int
+		Customer       func(childComplexity int, input string) int
+		Customers      func(childComplexity int) int
+		Employee       func(childComplexity int, input string) int
+		Employees      func(childComplexity int) int
+		Order          func(childComplexity int, input string) int
+		Orders         func(childComplexity int) int
+		Store          func(childComplexity int, input string) int
+		StoreLocation  func(childComplexity int, input string) int
+		StoreLocations func(childComplexity int) int
+		Stores         func(childComplexity int) int
 	}
 
 	SalesAssociate struct {
@@ -147,6 +145,14 @@ type ComplexityRoot struct {
 		Location        func(childComplexity int) int
 		Manager         func(childComplexity int) int
 		SalesAssociates func(childComplexity int) int
+	}
+
+	StoreLocation struct {
+		City    func(childComplexity int) int
+		ID      func(childComplexity int) int
+		State   func(childComplexity int) int
+		Street  func(childComplexity int) int
+		ZipCode func(childComplexity int) int
 	}
 }
 
@@ -169,6 +175,9 @@ type MutationResolver interface {
 	CreateInventoryItem(ctx context.Context, input model.NewInventoryItemInput) (*model.InventoryItem, error)
 	UpdateInventoryItem(ctx context.Context, input model.InventoryItemInput) (*model.InventoryItem, error)
 	DeleteInventoryItem(ctx context.Context, input string) (*model.InventoryItem, error)
+	CreateStoreLocation(ctx context.Context, input model.NewStoreLocationInput) (*model.StoreLocation, error)
+	UpdateStoreLocation(ctx context.Context, input model.StoreLocationInput) (*model.StoreLocation, error)
+	DeleteStoreLocation(ctx context.Context, input string) (*model.StoreLocation, error)
 	CreateStore(ctx context.Context, input model.NewStoreInput) (*model.Store, error)
 	UpdateStore(ctx context.Context, input model.StoreInput) (*model.Store, error)
 	DeleteStore(ctx context.Context, input string) (*model.Store, error)
@@ -180,6 +189,8 @@ type QueryResolver interface {
 	Employees(ctx context.Context) ([]model.Employee, error)
 	Store(ctx context.Context, input string) (*model.Store, error)
 	Stores(ctx context.Context) ([]*model.Store, error)
+	StoreLocation(ctx context.Context, input string) (*model.StoreLocation, error)
+	StoreLocations(ctx context.Context) ([]*model.StoreLocation, error)
 	Order(ctx context.Context, input string) (*model.Order, error)
 	Orders(ctx context.Context) ([]*model.Order, error)
 }
@@ -296,34 +307,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LineItem.Retail(childComplexity), true
-
-	case "Location.city":
-		if e.complexity.Location.City == nil {
-			break
-		}
-
-		return e.complexity.Location.City(childComplexity), true
-
-	case "Location.state":
-		if e.complexity.Location.State == nil {
-			break
-		}
-
-		return e.complexity.Location.State(childComplexity), true
-
-	case "Location.street":
-		if e.complexity.Location.Street == nil {
-			break
-		}
-
-		return e.complexity.Location.Street(childComplexity), true
-
-	case "Location.zipcode":
-		if e.complexity.Location.Zipcode == nil {
-			break
-		}
-
-		return e.complexity.Location.Zipcode(childComplexity), true
 
 	case "Manager.firstName":
 		if e.complexity.Manager.FirstName == nil {
@@ -458,6 +441,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateStore(childComplexity, args["input"].(model.NewStoreInput)), true
 
+	case "Mutation.createStoreLocation":
+		if e.complexity.Mutation.CreateStoreLocation == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createStoreLocation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateStoreLocation(childComplexity, args["input"].(model.NewStoreLocationInput)), true
+
 	case "Mutation.deleteCustomer":
 		if e.complexity.Mutation.DeleteCustomer == nil {
 			break
@@ -542,6 +537,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteStore(childComplexity, args["input"].(string)), true
 
+	case "Mutation.deleteStoreLocation":
+		if e.complexity.Mutation.DeleteStoreLocation == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteStoreLocation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteStoreLocation(childComplexity, args["input"].(string)), true
+
 	case "Mutation.updateCustomer":
 		if e.complexity.Mutation.UpdateCustomer == nil {
 			break
@@ -625,6 +632,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateStore(childComplexity, args["input"].(model.StoreInput)), true
+
+	case "Mutation.updateStoreLocation":
+		if e.complexity.Mutation.UpdateStoreLocation == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateStoreLocation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateStoreLocation(childComplexity, args["input"].(model.StoreLocationInput)), true
 
 	case "Order.customer":
 		if e.complexity.Order.Customer == nil {
@@ -730,6 +749,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Store(childComplexity, args["input"].(string)), true
 
+	case "Query.storeLocation":
+		if e.complexity.Query.StoreLocation == nil {
+			break
+		}
+
+		args, err := ec.field_Query_storeLocation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.StoreLocation(childComplexity, args["input"].(string)), true
+
+	case "Query.storeLocations":
+		if e.complexity.Query.StoreLocations == nil {
+			break
+		}
+
+		return e.complexity.Query.StoreLocations(childComplexity), true
+
 	case "Query.stores":
 		if e.complexity.Query.Stores == nil {
 			break
@@ -806,6 +844,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Store.SalesAssociates(childComplexity), true
+
+	case "StoreLocation.city":
+		if e.complexity.StoreLocation.City == nil {
+			break
+		}
+
+		return e.complexity.StoreLocation.City(childComplexity), true
+
+	case "StoreLocation.id":
+		if e.complexity.StoreLocation.ID == nil {
+			break
+		}
+
+		return e.complexity.StoreLocation.ID(childComplexity), true
+
+	case "StoreLocation.state":
+		if e.complexity.StoreLocation.State == nil {
+			break
+		}
+
+		return e.complexity.StoreLocation.State(childComplexity), true
+
+	case "StoreLocation.street":
+		if e.complexity.StoreLocation.Street == nil {
+			break
+		}
+
+		return e.complexity.StoreLocation.Street(childComplexity), true
+
+	case "StoreLocation.zipCode":
+		if e.complexity.StoreLocation.ZipCode == nil {
+			break
+		}
+
+		return e.complexity.StoreLocation.ZipCode(childComplexity), true
 
 	}
 	return 0, false
@@ -922,17 +995,18 @@ type Manufacturer {
 
 type Store {
     id: ID!
-    location: Location!
+    location: StoreLocation!
     manager: Manager!
     salesAssociates: [SalesAssociate!]!
     inventory: [InventoryItem!]!
 }
 
-type Location {
+type StoreLocation {
+    id: ID!
     street: String!
     city: String!
     state: String!
-    zipcode: String!
+    zipCode: String!
 }
 
 type Order {
@@ -958,6 +1032,9 @@ type Query {
 
     store(input: ID!): Store
     stores: [Store!]!
+
+    storeLocation(input: ID!): StoreLocation
+    storeLocations: [StoreLocation!]!
 
     order(input: ID!): Order
     orders: [Order!]!
@@ -1053,27 +1130,27 @@ input ManufacturerInput {
 }
 
 input NewStoreInput {
-    location: NewLocationInput!
+    location: StoreLocationInput!
 }
 
-input NewLocationInput {
+input NewStoreLocationInput {
     street: String!
     city: String!
     state: String!
-    zipcode: String!
+    zipCode: String!
 }
 
 input StoreInput {
     id: ID!
-    location: LocationInput!
+    location: StoreLocationInput!
 }
 
-input LocationInput {
+input StoreLocationInput {
     id: ID!
     street: String!
     city: String!
     state: String!
-    zipcode: String!
+    zipCode: String!
 }
 
 type Mutation {
@@ -1100,6 +1177,10 @@ type Mutation {
     createInventoryItem(input: NewInventoryItemInput!): InventoryItem!
     updateInventoryItem(input: InventoryItemInput!): InventoryItem
     deleteInventoryItem(input: ID!): InventoryItem
+
+    createStoreLocation(input: NewStoreLocationInput!): StoreLocation!
+    updateStoreLocation(input: StoreLocationInput!): StoreLocation
+    deleteStoreLocation(input: ID!): StoreLocation
 
     createStore(input: NewStoreInput!): Store!
     updateStore(input: StoreInput!): Store
@@ -1202,6 +1283,21 @@ func (ec *executionContext) field_Mutation_createSalesAssociate_args(ctx context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createStoreLocation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.NewStoreLocationInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNNewStoreLocationInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewStoreLocationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createStore_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1293,6 +1389,21 @@ func (ec *executionContext) field_Mutation_deleteOrder_args(ctx context.Context,
 }
 
 func (ec *executionContext) field_Mutation_deleteSalesAssociate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteStoreLocation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1412,6 +1523,21 @@ func (ec *executionContext) field_Mutation_updateSalesAssociate_args(ctx context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateStoreLocation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.StoreLocationInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNStoreLocationInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateStore_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1473,6 +1599,21 @@ func (ec *executionContext) field_Query_employee_args(ctx context.Context, rawAr
 }
 
 func (ec *executionContext) field_Query_order_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_storeLocation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -2028,146 +2169,6 @@ func (ec *executionContext) _LineItem_quantity(ctx context.Context, field graphq
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Location_street(ctx context.Context, field graphql.CollectedField, obj *model.Location) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Location",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Street, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Location_city(ctx context.Context, field graphql.CollectedField, obj *model.Location) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Location",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.City, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Location_state(ctx context.Context, field graphql.CollectedField, obj *model.Location) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Location",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.State, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Location_zipcode(ctx context.Context, field graphql.CollectedField, obj *model.Location) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Location",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Zipcode, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Manager_id(ctx context.Context, field graphql.CollectedField, obj *model.Manager) (ret graphql.Marshaler) {
@@ -3135,6 +3136,126 @@ func (ec *executionContext) _Mutation_deleteInventoryItem(ctx context.Context, f
 	return ec.marshalOInventoryItem2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐInventoryItem(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_createStoreLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createStoreLocation_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateStoreLocation(rctx, args["input"].(model.NewStoreLocationInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.StoreLocation)
+	fc.Result = res
+	return ec.marshalNStoreLocation2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateStoreLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateStoreLocation_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateStoreLocation(rctx, args["input"].(model.StoreLocationInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.StoreLocation)
+	fc.Result = res
+	return ec.marshalOStoreLocation2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteStoreLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteStoreLocation_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteStoreLocation(rctx, args["input"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.StoreLocation)
+	fc.Result = res
+	return ec.marshalOStoreLocation2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocation(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createStore(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3652,6 +3773,80 @@ func (ec *executionContext) _Query_stores(ctx context.Context, field graphql.Col
 	return ec.marshalNStore2ᚕᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_storeLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_storeLocation_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().StoreLocation(rctx, args["input"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.StoreLocation)
+	fc.Result = res
+	return ec.marshalOStoreLocation2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_storeLocations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().StoreLocations(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.StoreLocation)
+	fc.Result = res
+	return ec.marshalNStoreLocation2ᚕᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocationᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_order(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4037,9 +4232,9 @@ func (ec *executionContext) _Store_location(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Location)
+	res := resTmp.(*model.StoreLocation)
 	fc.Result = res
-	return ec.marshalNLocation2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐLocation(ctx, field.Selections, res)
+	return ec.marshalNStoreLocation2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Store_manager(ctx context.Context, field graphql.CollectedField, obj *model.Store) (ret graphql.Marshaler) {
@@ -4145,6 +4340,181 @@ func (ec *executionContext) _Store_inventory(ctx context.Context, field graphql.
 	res := resTmp.([]*model.InventoryItem)
 	fc.Result = res
 	return ec.marshalNInventoryItem2ᚕᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐInventoryItemᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StoreLocation_id(ctx context.Context, field graphql.CollectedField, obj *model.StoreLocation) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StoreLocation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StoreLocation_street(ctx context.Context, field graphql.CollectedField, obj *model.StoreLocation) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StoreLocation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Street, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StoreLocation_city(ctx context.Context, field graphql.CollectedField, obj *model.StoreLocation) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StoreLocation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.City, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StoreLocation_state(ctx context.Context, field graphql.CollectedField, obj *model.StoreLocation) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StoreLocation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.State, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StoreLocation_zipCode(ctx context.Context, field graphql.CollectedField, obj *model.StoreLocation) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "StoreLocation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ZipCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -5394,58 +5764,6 @@ func (ec *executionContext) unmarshalInputLineItemInput(ctx context.Context, obj
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputLocationInput(ctx context.Context, obj interface{}) (model.LocationInput, error) {
-	var it model.LocationInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "street":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("street"))
-			it.Street, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "city":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("city"))
-			it.City, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "state":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
-			it.State, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "zipcode":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("zipcode"))
-			it.Zipcode, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputManagerInput(ctx context.Context, obj interface{}) (model.ManagerInput, error) {
 	var it model.ManagerInput
 	var asMap = obj.(map[string]interface{})
@@ -5589,50 +5907,6 @@ func (ec *executionContext) unmarshalInputNewInventoryItemInput(ctx context.Cont
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("manufacturer"))
 			it.Manufacturer, err = ec.unmarshalNManufacturerInput2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManufacturerInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputNewLocationInput(ctx context.Context, obj interface{}) (model.NewLocationInput, error) {
-	var it model.NewLocationInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "street":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("street"))
-			it.Street, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "city":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("city"))
-			it.City, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "state":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
-			it.State, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "zipcode":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("zipcode"))
-			it.Zipcode, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5788,7 +6062,51 @@ func (ec *executionContext) unmarshalInputNewStoreInput(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location"))
-			it.Location, err = ec.unmarshalNNewLocationInput2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewLocationInput(ctx, v)
+			it.Location, err = ec.unmarshalNStoreLocationInput2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocationInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewStoreLocationInput(ctx context.Context, obj interface{}) (model.NewStoreLocationInput, error) {
+	var it model.NewStoreLocationInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "street":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("street"))
+			it.Street, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "city":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("city"))
+			it.City, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "state":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
+			it.State, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "zipCode":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("zipCode"))
+			it.ZipCode, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5912,7 +6230,59 @@ func (ec *executionContext) unmarshalInputStoreInput(ctx context.Context, obj in
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location"))
-			it.Location, err = ec.unmarshalNLocationInput2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐLocationInput(ctx, v)
+			it.Location, err = ec.unmarshalNStoreLocationInput2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocationInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputStoreLocationInput(ctx context.Context, obj interface{}) (model.StoreLocationInput, error) {
+	var it model.StoreLocationInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "street":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("street"))
+			it.Street, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "city":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("city"))
+			it.City, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "state":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
+			it.State, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "zipCode":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("zipCode"))
+			it.ZipCode, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6111,48 +6481,6 @@ func (ec *executionContext) _LineItem(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
-var locationImplementors = []string{"Location"}
-
-func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet, obj *model.Location) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, locationImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Location")
-		case "street":
-			out.Values[i] = ec._Location_street(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "city":
-			out.Values[i] = ec._Location_city(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "state":
-			out.Values[i] = ec._Location_state(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "zipcode":
-			out.Values[i] = ec._Location_zipcode(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var managerImplementors = []string{"Manager", "Employee"}
 
 func (ec *executionContext) _Manager(ctx context.Context, sel ast.SelectionSet, obj *model.Manager) graphql.Marshaler {
@@ -6301,6 +6629,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_updateInventoryItem(ctx, field)
 		case "deleteInventoryItem":
 			out.Values[i] = ec._Mutation_deleteInventoryItem(ctx, field)
+		case "createStoreLocation":
+			out.Values[i] = ec._Mutation_createStoreLocation(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateStoreLocation":
+			out.Values[i] = ec._Mutation_updateStoreLocation(ctx, field)
+		case "deleteStoreLocation":
+			out.Values[i] = ec._Mutation_deleteStoreLocation(ctx, field)
 		case "createStore":
 			out.Values[i] = ec._Mutation_createStore(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -6458,6 +6795,31 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "storeLocation":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_storeLocation(ctx, field)
+				return res
+			})
+		case "storeLocations":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_storeLocations(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "order":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -6578,6 +6940,53 @@ func (ec *executionContext) _Store(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "inventory":
 			out.Values[i] = ec._Store_inventory(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var storeLocationImplementors = []string{"StoreLocation"}
+
+func (ec *executionContext) _StoreLocation(ctx context.Context, sel ast.SelectionSet, obj *model.StoreLocation) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, storeLocationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StoreLocation")
+		case "id":
+			out.Values[i] = ec._StoreLocation_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "street":
+			out.Values[i] = ec._StoreLocation_street(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "city":
+			out.Values[i] = ec._StoreLocation_city(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "state":
+			out.Values[i] = ec._StoreLocation_state(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "zipCode":
+			out.Values[i] = ec._StoreLocation_zipCode(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -7144,21 +7553,6 @@ func (ec *executionContext) unmarshalNLineItemInput2ᚖgithubᚗcomᚋjakewitche
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNLocation2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐLocation(ctx context.Context, sel ast.SelectionSet, v *model.Location) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._Location(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNLocationInput2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐLocationInput(ctx context.Context, v interface{}) (*model.LocationInput, error) {
-	res, err := ec.unmarshalInputLocationInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalNManager2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManager(ctx context.Context, sel ast.SelectionSet, v model.Manager) graphql.Marshaler {
 	return ec._Manager(ctx, sel, &v)
 }
@@ -7212,11 +7606,6 @@ func (ec *executionContext) unmarshalNNewInventoryItemInput2githubᚗcomᚋjakew
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewLocationInput2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewLocationInput(ctx context.Context, v interface{}) (*model.NewLocationInput, error) {
-	res, err := ec.unmarshalInputNewLocationInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNNewManagerInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewManagerInput(ctx context.Context, v interface{}) (model.NewManagerInput, error) {
 	res, err := ec.unmarshalInputNewManagerInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -7239,6 +7628,11 @@ func (ec *executionContext) unmarshalNNewSalesAssociateInput2githubᚗcomᚋjake
 
 func (ec *executionContext) unmarshalNNewStoreInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewStoreInput(ctx context.Context, v interface{}) (model.NewStoreInput, error) {
 	res, err := ec.unmarshalInputNewStoreInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNNewStoreLocationInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewStoreLocationInput(ctx context.Context, v interface{}) (model.NewStoreLocationInput, error) {
+	res, err := ec.unmarshalInputNewStoreLocationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -7408,6 +7802,67 @@ func (ec *executionContext) marshalNStore2ᚖgithubᚗcomᚋjakewitcherᚋposᚑ
 func (ec *executionContext) unmarshalNStoreInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreInput(ctx context.Context, v interface{}) (model.StoreInput, error) {
 	res, err := ec.unmarshalInputStoreInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNStoreLocation2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocation(ctx context.Context, sel ast.SelectionSet, v model.StoreLocation) graphql.Marshaler {
+	return ec._StoreLocation(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNStoreLocation2ᚕᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocationᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.StoreLocation) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNStoreLocation2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocation(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNStoreLocation2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocation(ctx context.Context, sel ast.SelectionSet, v *model.StoreLocation) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._StoreLocation(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNStoreLocationInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocationInput(ctx context.Context, v interface{}) (model.StoreLocationInput, error) {
+	res, err := ec.unmarshalInputStoreLocationInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNStoreLocationInput2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocationInput(ctx context.Context, v interface{}) (*model.StoreLocationInput, error) {
+	res, err := ec.unmarshalInputStoreLocationInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -7732,6 +8187,13 @@ func (ec *executionContext) marshalOStore2ᚖgithubᚗcomᚋjakewitcherᚋposᚑ
 		return graphql.Null
 	}
 	return ec._Store(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOStoreLocation2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocation(ctx context.Context, sel ast.SelectionSet, v *model.StoreLocation) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._StoreLocation(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

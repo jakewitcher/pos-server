@@ -8,8 +8,8 @@ import (
 	"strconv"
 )
 
-type LocationEntity struct {
-	Id      int    `json:"id"`
+type StoreLocationEntity struct {
+	Id      int64  `json:"id"`
 	Street  string `json:"street"`
 	City    string `json:"city"`
 	State   string `json:"state"`
@@ -17,21 +17,22 @@ type LocationEntity struct {
 }
 
 type StoreEntity struct {
-	Id         int `json:"id"`
-	LocationId int `json:"location_id"`
+	Id         int64 `json:"id"`
+	LocationId int   `json:"location_id"`
 }
 
-func (l *LocationEntity) ToDTO() *model.Location {
-	return &model.Location{
+func (l *StoreLocationEntity) ToDTO() *model.StoreLocation {
+	return &model.StoreLocation{
+		ID:      strconv.FormatInt(l.Id, 10),
 		Street:  l.Street,
 		City:    l.City,
 		State:   l.State,
-		Zipcode: l.ZipCode,
+		ZipCode: l.ZipCode,
 	}
 }
 
 func (s *StoreEntity) ToDTO(
-	location *LocationEntity,
+	location *StoreLocationEntity,
 	manager *employees.ManagerEntity,
 	salesAssociates []*employees.SalesAssociateEntity,
 	inventory []*inventory.ItemEntity,
@@ -50,7 +51,7 @@ func (s *StoreEntity) ToDTO(
 	}
 
 	return &model.Store{
-		ID:              strconv.Itoa(s.Id),
+		ID:              strconv.FormatInt(s.Id, 10),
 		Location:        location.ToDTO(),
 		Manager:         manager.ToDTO(),
 		SalesAssociates: salesAssociateDTOs,
