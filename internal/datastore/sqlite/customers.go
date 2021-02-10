@@ -236,14 +236,7 @@ func (p *CustomerProvider) GetAllCustomers() []*model.Customer {
 	return customerModels
 }
 
-func NewCustomerProvider() *CustomerProvider {
-	db, err := sql.Open("sqlite3", "./pos.db")
-	checkError(err)
-
-	if err = db.Ping(); err != nil {
-		log.Fatalln(err)
-	}
-
+func NewCustomerProvider(db *sql.DB) *CustomerProvider {
 	return &CustomerProvider{db: db}
 }
 
