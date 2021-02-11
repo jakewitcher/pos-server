@@ -14,7 +14,7 @@ type CustomerProvider interface {
 	UpdateCustomer(updatedCustomer model.CustomerInput) (*model.Customer, error)
 	DeleteCustomer(customerId string) (*model.Customer, error)
 	FindCustomerById(customerId string) (*model.Customer, error)
-	FindAllCustomers() ([]*model.Customer, error)
+	FindCustomers(filter *model.CustomerFilter) ([]*model.Customer, error)
 }
 
 type StoreProvider interface {

@@ -23,6 +23,12 @@ type Customer struct {
 	ContactInfo *ContactInfo `json:"contactInfo"`
 }
 
+type CustomerFilter struct {
+	LastName     *string `json:"lastName"`
+	PhoneNumber  *string `json:"phoneNumber"`
+	EmailAddress *string `json:"emailAddress"`
+}
+
 type CustomerInput struct {
 	ID          string            `json:"id"`
 	FirstName   string            `json:"firstName"`

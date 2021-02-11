@@ -117,7 +117,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Customer  func(childComplexity int, input string) int
-		Customers func(childComplexity int) int
+		Customers func(childComplexity int, input *model.CustomerFilter) int
 		Employee  func(childComplexity int, input string) int
 		Employees func(childComplexity int) int
 		Order     func(childComplexity int, input string) int
@@ -174,7 +174,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Customer(ctx context.Context, input string) (*model.Customer, error)
-	Customers(ctx context.Context) ([]*model.Customer, error)
+	Customers(ctx context.Context, input *model.CustomerFilter) ([]*model.Customer, error)
 	Store(ctx context.Context, input string) (*model.Store, error)
 	Stores(ctx context.Context, input *model.StoreFilter) ([]*model.Store, error)
 	Employee(ctx context.Context, input string) (model.Employee, error)
@@ -649,7 +649,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Customers(childComplexity), true
+		args, err := ec.field_Query_customers_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Customers(childComplexity, args["input"].(*model.CustomerFilter)), true
 
 	case "Query.employee":
 		if e.complexity.Query.Employee == nil {
@@ -945,6 +950,12 @@ type LineItem {
     quantity: Int!
 }
 
+input CustomerFilter {
+    lastName: String
+    phoneNumber: String
+    emailAddress: String
+}
+
 input StoreFilter {
     name: String
     city: String
@@ -953,7 +964,7 @@ input StoreFilter {
 
 type Query {
     customer(input: ID!): Customer
-    customers: [Customer!]!
+    customers(input: CustomerFilter): [Customer!]!
 
     store(input: ID!): Store
     stores(input: StoreFilter): [Store!]!
@@ -1445,6 +1456,21 @@ func (ec *executionContext) field_Query_customer_args(ctx context.Context, rawAr
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_customers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.CustomerFilter
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOCustomerFilter2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐCustomerFilter(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3356,9 +3382,16 @@ func (ec *executionContext) _Query_customers(ctx context.Context, field graphql.
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_customers_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Customers(rctx)
+		return ec.resolvers.Query().Customers(rctx, args["input"].(*model.CustomerFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5236,6 +5269,42 @@ func (ec *executionContext) unmarshalInputContactInfoInput(ctx context.Context, 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emailAddress"))
 			it.EmailAddress, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCustomerFilter(ctx context.Context, obj interface{}) (model.CustomerFilter, error) {
+	var it model.CustomerFilter
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "lastName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
+			it.LastName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "phoneNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+			it.PhoneNumber, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "emailAddress":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emailAddress"))
+			it.EmailAddress, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7582,6 +7651,14 @@ func (ec *executionContext) marshalOCustomer2ᚖgithubᚗcomᚋjakewitcherᚋpos
 		return graphql.Null
 	}
 	return ec._Customer(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOCustomerFilter2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐCustomerFilter(ctx context.Context, v interface{}) (*model.CustomerFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCustomerFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOEmployee2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployee(ctx context.Context, sel ast.SelectionSet, v model.Employee) graphql.Marshaler {

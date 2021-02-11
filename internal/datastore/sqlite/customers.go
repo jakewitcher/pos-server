@@ -7,6 +7,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"strconv"
+	"strings"
 )
 
 type CustomerProvider struct {
@@ -347,11 +348,14 @@ func (p *CustomerProvider) findCustomerAndContactInfoByCustomerId(customerId int
 	return customer, contactInfo, nil
 }
 
-func (p *CustomerProvider) FindAllCustomers() ([]*model.Customer, error) {
-	statement, err := p.db.Prepare(
-		`SELECT C.Id, C.FirstName, C.LastName, CI.EmailAddress, CI.PhoneNumber
-			   FROM Customer C INNER JOIN ContactInfo CI 
-			   ON C.ContactInfoId = CI.Id`)
+func (p *CustomerProvider) FindCustomers(filter *model.CustomerFilter) ([]*model.Customer, error) {
+	queryBase := `SELECT C.Id, C.FirstName, C.LastName, CI.EmailAddress, CI.PhoneNumber
+			   	  FROM Customer C INNER JOIN ContactInfo CI 
+			   	  ON C.ContactInfoId = CI.Id`
+
+	query, queryParameters := p.buildQuery(queryBase, filter)
+
+	statement, err := p.db.Prepare(query)
 
 	if err != nil {
 		log.Println(err)
@@ -360,7 +364,7 @@ func (p *CustomerProvider) FindAllCustomers() ([]*model.Customer, error) {
 
 	defer statement.Close()
 
-	rows, err := statement.Query()
+	rows, err := statement.Query(queryParameters...)
 
 	if err != nil {
 		log.Println(err)
@@ -390,6 +394,39 @@ func (p *CustomerProvider) FindAllCustomers() ([]*model.Customer, error) {
 	}
 
 	return customerModels, nil
+}
+
+func (p *CustomerProvider) buildQuery(base string, filter *model.CustomerFilter) (string, []interface{}) {
+	columns := make([]string, 0)
+	values := make([]interface{}, 0)
+
+	if filter == nil {
+		return base, values
+	}
+
+	if filter.LastName != nil {
+		columns = append(columns, "C.LastName = ?")
+		values = append(values, *filter.LastName)
+	}
+
+	if filter.PhoneNumber != nil {
+		columns = append(columns, "CI.PhoneNumber = ?")
+		values = append(values, *filter.PhoneNumber)
+	}
+
+	if filter.EmailAddress != nil {
+		columns = append(columns, "CI.EmailAddress = ?")
+		values = append(values, *filter.EmailAddress)
+	}
+
+	if len(columns) < 1 {
+		return base, values
+	}
+
+	query := base + "\nWHERE "
+	query += strings.Join(columns, " AND ")
+
+	return query, values
 }
 
 func NewCustomerProvider(db *sql.DB) *CustomerProvider {

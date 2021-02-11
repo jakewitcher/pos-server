@@ -375,8 +375,10 @@ func (p *StoreProvider) FindStores(filter *model.StoreFilter) ([]*model.Store, e
 	defer statement.Close()
 
 	rows, err := statement.Query(queryParameters...)
+
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return nil, serverError
 	}
 
 	storeModels := make([]*model.Store, 0)
@@ -394,8 +396,10 @@ func (p *StoreProvider) FindStores(filter *model.StoreFilter) ([]*model.Store, e
 			&storeLocation.City,
 			&storeLocation.State,
 			&storeLocation.ZipCode)
+
 		if err != nil {
-			log.Fatalln(err)
+			log.Println(err)
+			return nil, serverError
 		}
 
 		storeModel := store.ToDTO(storeLocation)
@@ -408,6 +412,10 @@ func (p *StoreProvider) FindStores(filter *model.StoreFilter) ([]*model.Store, e
 func (p *StoreProvider) buildQuery(base string, filter *model.StoreFilter) (string, []interface{}) {
 	columns := make([]string, 0)
 	values := make([]interface{}, 0)
+
+	if filter == nil {
+		return base, values
+	}
 
 	if filter.Name != nil {
 		columns = append(columns, "Name = ?")

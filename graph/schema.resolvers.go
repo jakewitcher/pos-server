@@ -100,8 +100,8 @@ func (r *queryResolver) Customer(ctx context.Context, input string) (*model.Cust
 	return datastore.Customers.FindCustomerById(input)
 }
 
-func (r *queryResolver) Customers(ctx context.Context) ([]*model.Customer, error) {
-	return datastore.Customers.FindAllCustomers()
+func (r *queryResolver) Customers(ctx context.Context, input *model.CustomerFilter) ([]*model.Customer, error) {
+	return datastore.Customers.FindCustomers(input)
 }
 
 func (r *queryResolver) Store(ctx context.Context, input string) (*model.Store, error) {

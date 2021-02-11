@@ -75,6 +75,12 @@ type LineItem {
     quantity: Int!
 }
 
+input CustomerFilter {
+    lastName: String
+    phoneNumber: String
+    emailAddress: String
+}
+
 input StoreFilter {
     name: String
     city: String
@@ -83,7 +89,7 @@ input StoreFilter {
 
 type Query {
     customer(input: ID!): Customer
-    customers: [Customer!]!
+    customers(input: CustomerFilter): [Customer!]!
 
     store(input: ID!): Store
     stores(input: StoreFilter): [Store!]!
