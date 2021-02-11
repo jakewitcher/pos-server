@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/mux"
@@ -15,13 +16,17 @@ import (
 
 const defaultPort = "8080"
 
+var Db *sql.DB
+
 func init() {
-	db := sqlite.OpenConnection()
-	datastore.Customers = sqlite.NewCustomerProvider(db)
-	datastore.Stores = sqlite.NewStoreProvider(db)
+	Db = sqlite.OpenConnection()
+	datastore.Customers = sqlite.NewCustomerProvider(Db)
+	datastore.Stores = sqlite.NewStoreProvider(Db)
 }
 
 func main() {
+	defer Db.Close()
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
