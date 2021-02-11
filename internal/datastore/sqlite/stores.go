@@ -381,6 +381,8 @@ func (p *StoreProvider) FindStores(filter *model.StoreFilter) ([]*model.Store, e
 		return nil, serverError
 	}
 
+	defer rows.Close()
+
 	storeModels := make([]*model.Store, 0)
 
 	for rows.Next() {

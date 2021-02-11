@@ -370,6 +370,8 @@ func (p *CustomerProvider) FindCustomers(filter *model.CustomerFilter) ([]*model
 		return nil, serverError
 	}
 
+	defer rows.Close()
+
 	customerModels := make([]*model.Customer, 0)
 
 	for rows.Next() {
