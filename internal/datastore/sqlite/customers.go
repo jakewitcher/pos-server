@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"github.com/jakewitcher/pos-server/graph/model"
 	"github.com/jakewitcher/pos-server/internal/customers"
-	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"strconv"
 	"strings"
