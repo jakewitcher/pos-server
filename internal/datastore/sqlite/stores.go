@@ -2,60 +2,57 @@ package sqlite
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/jakewitcher/pos-server/graph/model"
 	"github.com/jakewitcher/pos-server/internal/stores"
+	"log"
 	"strconv"
+	"strings"
 )
 
 type StoreProvider struct {
 	db *sql.DB
 }
 
-func (p *StoreProvider) CreateStore(newStore model.NewStoreInput) *model.Store {
-	panic(fmt.Errorf("not implemented"))
-}
+func (p *StoreProvider) CreateStore(newStore model.NewStoreInput) (*model.Store, error) {
+	newStoreLocation := newStore.Location
 
-func (p *StoreProvider) UpdateStore(updatedStore model.StoreInput) *model.Store {
-	panic(fmt.Errorf("not implemented"))
-}
+	storeLocationId, err := p.insertNewStoreLocation(newStoreLocation)
 
-func (p *StoreProvider) DeleteStore(storeId string) *model.Store {
-	panic(fmt.Errorf("not implemented"))
-}
+	if err != nil {
+		return nil, err
+	}
 
-func (p *StoreProvider) FindStoreById(storeId string) *model.Store {
-	panic(fmt.Errorf("not implemented"))
-}
+	storeId, err := p.insertNewStore(newStore, storeLocationId)
+	if err != nil {
+		return nil, err
+	}
 
-func (p *StoreProvider) FindAllStores() []*model.Store {
-	panic(fmt.Errorf("not implemented"))
-}
+	store := &stores.StoreEntity{
+		Id:         storeId,
+		Name:       newStore.Name,
+		LocationId: storeLocationId,
+	}
 
-func NewStoreProvider(db *sql.DB) *StoreProvider {
-	return &StoreProvider{db: db}
-}
-
-type StoreLocationProvider struct {
-	db *sql.DB
-}
-
-func (p *StoreLocationProvider) CreateStoreLocation(newStoreLocation model.NewStoreLocationInput) *model.StoreLocation {
-	storeLocationId := p.insertNewStoreLocation(newStoreLocation)
-
-	return &model.StoreLocation{
-		ID:      strconv.FormatInt(storeLocationId, 10),
+	location := &stores.StoreLocationEntity{
+		Id:      storeLocationId,
 		Street:  newStoreLocation.Street,
 		City:    newStoreLocation.City,
 		State:   newStoreLocation.State,
 		ZipCode: newStoreLocation.ZipCode,
 	}
+
+	return store.ToDTO(location), nil
 }
 
-func (p *StoreLocationProvider) insertNewStoreLocation(newStoreLocation model.NewStoreLocationInput) int64 {
+func (p *StoreProvider) insertNewStoreLocation(newStoreLocation *model.StoreLocationInput) (int64, error) {
 	statement, err := p.db.Prepare(
-		`INSERT INTO StoreLocation(Street, City, State, ZipCode) VALUES (?,?,?,?)`)
-	checkError(err)
+		`INSERT INTO StoreLocation(Street, City, State, ZipCode) 
+			   VALUES (?,?,?,?)`)
+
+	if err != nil {
+		log.Println(err)
+		return 0, serverError
+	}
 
 	defer statement.Close()
 
@@ -64,19 +61,77 @@ func (p *StoreLocationProvider) insertNewStoreLocation(newStoreLocation model.Ne
 		newStoreLocation.City,
 		newStoreLocation.State,
 		newStoreLocation.ZipCode)
-	checkError(err)
+
+	if err != nil {
+		log.Println(err)
+		return 0, serverError
+	}
 
 	storeLocationId, err := result.LastInsertId()
-	checkError(err)
 
-	return storeLocationId
+	if err != nil {
+		log.Println(err)
+		return 0, serverError
+	}
+
+	return storeLocationId, nil
 }
 
-func (p *StoreLocationProvider) UpdateStoreLocation(updatedStoreLocation model.StoreLocationInput) *model.StoreLocation {
-	storeLocationId, err := strconv.ParseInt(updatedStoreLocation.ID, 10, 64)
-	checkError(err)
+func (p *StoreProvider) insertNewStore(newStore model.NewStoreInput, storeLocationId int64) (int64, error) {
+	statement, err := p.db.Prepare(
+		`INSERT INTO Store(Name, LocationId) 
+			   VALUES (?,?)`)
 
-	p.updateStoreLocation(updatedStoreLocation, storeLocationId)
+	if err != nil {
+		log.Println(err)
+		return 0, serverError
+	}
+
+	defer statement.Close()
+
+	result, err := statement.Exec(newStore.Name, storeLocationId)
+
+	if err != nil {
+		log.Println(err)
+		return 0, serverError
+	}
+
+	storeId, err := result.LastInsertId()
+
+	if err != nil {
+		log.Println(err)
+		return 0, serverError
+	}
+
+	return storeId, nil
+}
+
+func (p *StoreProvider) UpdateStore(updatedStore model.StoreInput) (*model.Store, error) {
+	updatedStoreLocation := updatedStore.Location
+
+	storeId, err := strconv.ParseInt(updatedStore.ID, 10, 64)
+
+	if err != nil {
+		return nil, newInvalidIdError(store, updatedStore.ID)
+	}
+
+	storeLocationId, err := p.getStoreLocationIdByStoreId(storeId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.updateStoreLocation(updatedStoreLocation, storeLocationId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.updateStore(updatedStore, storeId)
+
+	if err != nil {
+		return nil, err
+	}
 
 	storeLocation := &stores.StoreLocationEntity{
 		Id:      storeLocationId,
@@ -86,10 +141,15 @@ func (p *StoreLocationProvider) UpdateStoreLocation(updatedStoreLocation model.S
 		ZipCode: updatedStoreLocation.ZipCode,
 	}
 
-	return storeLocation.ToDTO()
+	store := &stores.StoreEntity{
+		Id:         storeId,
+		LocationId: storeLocationId,
+	}
+
+	return store.ToDTO(storeLocation), nil
 }
 
-func (p *StoreLocationProvider) updateStoreLocation(updatedStoreLocation model.StoreLocationInput, storeLocationId int64) {
+func (p *StoreProvider) updateStoreLocation(updatedStoreLocation *model.StoreLocationInput, storeLocationId int64) error {
 	statement, err := p.db.Prepare(
 		`UPDATE StoreLocation
 			   SET Street = ?,
@@ -97,7 +157,11 @@ func (p *StoreLocationProvider) updateStoreLocation(updatedStoreLocation model.S
 				   State = ?,
 				   ZipCode = ?
 			   WHERE Id = ?`)
-	checkError(err)
+
+	if err != nil {
+		log.Println(err)
+		return serverError
+	}
 
 	defer statement.Close()
 
@@ -107,86 +171,269 @@ func (p *StoreLocationProvider) updateStoreLocation(updatedStoreLocation model.S
 		updatedStoreLocation.State,
 		updatedStoreLocation.ZipCode,
 		storeLocationId)
-	checkError(err)
+
+	if err != nil {
+		log.Println(err)
+		return serverError
+	}
+
+	return nil
 }
 
-func (p *StoreLocationProvider) DeleteStoreLocation(storeLocationId string) *model.StoreLocation {
-	storeLocation := p.findStoreLocationById(storeLocationId)
-
+func (p *StoreProvider) updateStore(updatedStore model.StoreInput, storeId int64) error {
 	statement, err := p.db.Prepare(
-		`DELETE FROM StoreLocation WHERE Id = ?`)
-	checkError(err)
+		`UPDATE Store
+			   SET Name = ?
+			   WHERE Id = ?`)
+
+	if err != nil {
+		log.Println(err)
+		return serverError
+	}
 
 	defer statement.Close()
 
-	_, err = statement.Exec(storeLocation.Id)
-	checkError(err)
+	_, err = statement.Exec(updatedStore.Name, storeId)
 
-	return storeLocation.ToDTO()
+	if err != nil {
+		log.Println(err)
+		return serverError
+	}
+
+	return nil
 }
 
-func (p *StoreLocationProvider) FindStoreLocationById(storeLocationId string) *model.StoreLocation {
-	return p.findStoreLocationById(storeLocationId).ToDTO()
-}
-
-func (p *StoreLocationProvider) findStoreLocationById(storeLocationId string) *stores.StoreLocationEntity {
-	id, err := strconv.ParseInt(storeLocationId, 10, 64)
-	checkError(err)
-
+func (p *StoreProvider) getStoreLocationIdByStoreId(storeId int64) (int64, error) {
 	statement, err := p.db.Prepare(
-		`SELECT Id, Street, City, State, ZipCode 
-				   FROM StoreLocation 
-				   WHERE Id = ?`)
-	checkError(err)
+		`SELECT LocationId
+			   FROM Store
+			   WHERE Id = ?`)
+
+	if err != nil {
+		log.Println(err)
+		return 0, serverError
+	}
 
 	defer statement.Close()
 
-	row := statement.QueryRow(id)
+	row := statement.QueryRow(storeId)
+	var locationId int64
 
+	err = row.Scan(&locationId)
+
+	if err == sql.ErrNoRows {
+		return 0, newNotFoundError(store, storeId)
+	}
+
+	if err != nil {
+		return 0, serverError
+	}
+
+	return locationId, nil
+}
+
+func (p *StoreProvider) DeleteStore(storeId string) (*model.Store, error) {
+	id, err := strconv.ParseInt(storeId, 10, 64)
+
+	if err != nil {
+		return nil, newInvalidIdError(store, storeId)
+	}
+
+	store, storeLocation, err := p.findStoreAndStoreLocationByStoreId(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.deleteStoreLocation(storeLocation.Id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.deleteStore(store.Id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return store.ToDTO(storeLocation), nil
+}
+
+func (p *StoreProvider) deleteStoreLocation(storeLocationId int64) error {
+	statement, err := p.db.Prepare(
+		`DELETE FROM StoreLocation 
+			   WHERE Id = ?`)
+
+	if err != nil {
+		log.Println(err)
+		return serverError
+	}
+
+	defer statement.Close()
+
+	_, err = statement.Exec(storeLocationId)
+
+	if err != nil {
+		log.Println(err)
+		return serverError
+	}
+
+	return nil
+}
+
+func (p *StoreProvider) deleteStore(storeId int64) error {
+	statement, err := p.db.Prepare(
+		`DELETE FROM Store 
+			   WHERE Id = ?`)
+
+	if err != nil {
+		log.Println(err)
+		return serverError
+	}
+
+	defer statement.Close()
+
+	_, err = statement.Exec(storeId)
+
+	if err != nil {
+		log.Println(err)
+		return serverError
+	}
+
+	return nil
+}
+
+func (p *StoreProvider) FindStoreById(storeId string) (*model.Store, error) {
+	id, err := strconv.ParseInt(storeId, 10, 64)
+
+	if err != nil {
+		log.Println(err)
+		return nil, newInvalidIdError(store, storeId)
+	}
+
+	store, storeLocation, err := p.findStoreAndStoreLocationByStoreId(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return store.ToDTO(storeLocation), nil
+}
+
+func (p *StoreProvider) findStoreAndStoreLocationByStoreId(storeId int64) (*stores.StoreEntity, *stores.StoreLocationEntity, error) {
+	statement, err := p.db.Prepare(
+		`SELECT S.Id, S.Name, S.LocationId, SL.Id, SL.Street, SL.City, SL.State, SL.ZipCode 
+			   FROM Store S INNER JOIN StoreLocation SL 
+    		   ON SL.Id = S.LocationId
+    		   WHERE S.Id = ?`)
+
+	if err != nil {
+		log.Println(err)
+		return nil, nil, serverError
+	}
+
+	defer statement.Close()
+
+	row := statement.QueryRow(storeId)
+
+	store := &stores.StoreEntity{}
 	storeLocation := &stores.StoreLocationEntity{}
 
 	err = row.Scan(
+		&store.Id,
+		&store.Name,
+		&store.LocationId,
 		&storeLocation.Id,
 		&storeLocation.Street,
 		&storeLocation.City,
 		&storeLocation.State,
 		&storeLocation.ZipCode)
-	checkError(err)
 
-	return storeLocation
+	if err != nil {
+		log.Println(err)
+		return nil, nil, serverError
+	}
+
+	return store, storeLocation, nil
 }
 
-func (p *StoreLocationProvider) FindAllStoreLocations() []*model.StoreLocation {
-	statement, err := p.db.Prepare(
-		`SELECT Id, Street, City, State, ZipCode 
-			   FROM StoreLocation`)
-	checkError(err)
+func (p *StoreProvider) FindStores(filter *model.StoreFilter) ([]*model.Store, error) {
+	queryBase := `SELECT S.Id, S.Name, S.LocationId, SL.Id, SL.Street, SL.City, SL.State, SL.ZipCode 
+			      FROM Store S INNER JOIN StoreLocation SL 
+			      ON SL.Id = S.LocationId`
+
+	query, queryParameters := p.buildQuery(queryBase, filter)
+
+	statement, err := p.db.Prepare(query)
+
+	if err != nil {
+		log.Println(err)
+		return nil, serverError
+	}
 
 	defer statement.Close()
 
-	rows, err := statement.Query()
-	checkError(err)
+	rows, err := statement.Query(queryParameters...)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	storeLocationModels := make([]*model.StoreLocation, 0)
+	storeModels := make([]*model.Store, 0)
 
 	for rows.Next() {
+		store := &stores.StoreEntity{}
 		storeLocation := &stores.StoreLocationEntity{}
 
 		err := rows.Scan(
+			&store.Id,
+			&store.Name,
+			&store.LocationId,
 			&storeLocation.Id,
 			&storeLocation.Street,
 			&storeLocation.City,
 			&storeLocation.State,
 			&storeLocation.ZipCode)
-		checkError(err)
+		if err != nil {
+			log.Fatalln(err)
+		}
 
-		storeLocationModel := storeLocation.ToDTO()
-		storeLocationModels = append(storeLocationModels, storeLocationModel)
+		storeModel := store.ToDTO(storeLocation)
+		storeModels = append(storeModels, storeModel)
 	}
 
-	return storeLocationModels
+	return storeModels, nil
 }
 
-func NewStoreLocationProvider(db *sql.DB) *StoreLocationProvider {
-	return &StoreLocationProvider{db: db}
+func (p *StoreProvider) buildQuery(base string, filter *model.StoreFilter) (string, []interface{}) {
+	columns := make([]string, 0)
+	values := make([]interface{}, 0)
+
+	if filter.Name != nil {
+		columns = append(columns, "Name = ?")
+		values = append(values, *filter.Name)
+	}
+
+	if filter.City != nil {
+		columns = append(columns, "City = ?")
+		values = append(values, *filter.City)
+	}
+
+	if filter.State != nil {
+		columns = append(columns, "State = ?")
+		values = append(values, *filter.State)
+	}
+
+	if len(columns) < 1 {
+		return base, values
+	}
+
+	query := base + "\nWHERE "
+	query += strings.Join(columns, " AND ")
+
+	return query, values
+}
+
+func NewStoreProvider(db *sql.DB) *StoreProvider {
+	return &StoreProvider{db: db}
 }

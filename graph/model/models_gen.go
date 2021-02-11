@@ -122,14 +122,8 @@ type NewSalesAssociateInput struct {
 }
 
 type NewStoreInput struct {
+	Name     string              `json:"name"`
 	Location *StoreLocationInput `json:"location"`
-}
-
-type NewStoreLocationInput struct {
-	Street  string `json:"street"`
-	City    string `json:"city"`
-	State   string `json:"state"`
-	ZipCode string `json:"zipCode"`
 }
 
 type Order struct {
@@ -166,15 +160,20 @@ type SalesAssociateInput struct {
 }
 
 type Store struct {
-	ID              string            `json:"id"`
-	Location        *StoreLocation    `json:"location"`
-	Manager         *Manager          `json:"manager"`
-	SalesAssociates []*SalesAssociate `json:"salesAssociates"`
-	Inventory       []*InventoryItem  `json:"inventory"`
+	ID       string         `json:"id"`
+	Name     string         `json:"name"`
+	Location *StoreLocation `json:"location"`
+}
+
+type StoreFilter struct {
+	Name  *string `json:"name"`
+	City  *string `json:"city"`
+	State *string `json:"state"`
 }
 
 type StoreInput struct {
 	ID       string              `json:"id"`
+	Name     string              `json:"name"`
 	Location *StoreLocationInput `json:"location"`
 }
 
@@ -187,7 +186,6 @@ type StoreLocation struct {
 }
 
 type StoreLocationInput struct {
-	ID      string `json:"id"`
 	Street  string `json:"street"`
 	City    string `json:"city"`
 	State   string `json:"state"`

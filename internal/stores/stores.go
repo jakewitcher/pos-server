@@ -2,9 +2,6 @@ package stores
 
 import (
 	"github.com/jakewitcher/pos-server/graph/model"
-	"github.com/jakewitcher/pos-server/internal/employees"
-	"github.com/jakewitcher/pos-server/internal/inventory"
-	"github.com/jakewitcher/pos-server/internal/manufacturers"
 	"strconv"
 )
 
@@ -17,8 +14,9 @@ type StoreLocationEntity struct {
 }
 
 type StoreEntity struct {
-	Id         int64 `json:"id"`
-	LocationId int   `json:"location_id"`
+	Id         int64  `json:"id"`
+	Name       string `json:"name"`
+	LocationId int64  `json:"location_id"`
 }
 
 func (l *StoreLocationEntity) ToDTO() *model.StoreLocation {
@@ -31,30 +29,10 @@ func (l *StoreLocationEntity) ToDTO() *model.StoreLocation {
 	}
 }
 
-func (s *StoreEntity) ToDTO(
-	location *StoreLocationEntity,
-	manager *employees.ManagerEntity,
-	salesAssociates []*employees.SalesAssociateEntity,
-	inventory []*inventory.ItemEntity,
-	manufacturers map[int]*manufacturers.ManufacturerEntity,
-) *model.Store {
-
-	salesAssociateDTOs := make([]*model.SalesAssociate, len(salesAssociates))
-	for i, salesAssociate := range salesAssociates {
-		salesAssociateDTOs[i] = salesAssociate.ToDTO()
-	}
-
-	inventoryDTO := make([]*model.InventoryItem, len(inventory))
-	for i, item := range inventory {
-		manufacturer := manufacturers[item.ManufacturerId]
-		inventoryDTO[i] = item.ToDTO(manufacturer)
-	}
-
+func (s *StoreEntity) ToDTO(location *StoreLocationEntity) *model.Store {
 	return &model.Store{
-		ID:              strconv.FormatInt(s.Id, 10),
-		Location:        location.ToDTO(),
-		Manager:         manager.ToDTO(),
-		SalesAssociates: salesAssociateDTOs,
-		Inventory:       inventoryDTO,
+		ID:       strconv.FormatInt(s.Id, 10),
+		Name:     s.Name,
+		Location: location.ToDTO(),
 	}
 }

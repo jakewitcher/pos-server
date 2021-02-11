@@ -5,31 +5,22 @@ import (
 )
 
 var (
-	Customers      CustomerProvider
-	Stores         StoreProvider
-	StoreLocations StoreLocationProvider
+	Customers CustomerProvider
+	Stores    StoreProvider
 )
 
 type CustomerProvider interface {
-	CreateCustomer(newCustomer model.NewCustomerInput) *model.Customer
-	UpdateCustomer(updatedCustomer model.CustomerInput) *model.Customer
-	DeleteCustomer(customerId string) *model.Customer
-	FindCustomerById(customerId string) *model.Customer
-	FindAllCustomers() []*model.Customer
+	CreateCustomer(newCustomer model.NewCustomerInput) (*model.Customer, error)
+	UpdateCustomer(updatedCustomer model.CustomerInput) (*model.Customer, error)
+	DeleteCustomer(customerId string) (*model.Customer, error)
+	FindCustomerById(customerId string) (*model.Customer, error)
+	FindAllCustomers() ([]*model.Customer, error)
 }
 
 type StoreProvider interface {
-	CreateStore(newStore model.NewStoreInput) *model.Store
-	UpdateStore(updatedStore model.StoreInput) *model.Store
-	DeleteStore(storeId string) *model.Store
-	FindStoreById(storeId string) *model.Store
-	FindAllStores() []*model.Store
-}
-
-type StoreLocationProvider interface {
-	CreateStoreLocation(newStoreLocation model.NewStoreLocationInput) *model.StoreLocation
-	UpdateStoreLocation(updatedStoreLocation model.StoreLocationInput) *model.StoreLocation
-	DeleteStoreLocation(storeLocationId string) *model.StoreLocation
-	FindStoreLocationById(storeLocationId string) *model.StoreLocation
-	FindAllStoreLocations() []*model.StoreLocation
+	CreateStore(newStore model.NewStoreInput) (*model.Store, error)
+	UpdateStore(updatedStore model.StoreInput) (*model.Store, error)
+	DeleteStore(storeId string) (*model.Store, error)
+	FindStoreById(storeId string) (*model.Store, error)
+	FindStores(filter *model.StoreFilter) ([]*model.Store, error)
 }

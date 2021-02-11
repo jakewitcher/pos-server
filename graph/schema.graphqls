@@ -49,10 +49,8 @@ type Manufacturer {
 
 type Store {
     id: ID!
+    name: String!
     location: StoreLocation!
-    manager: Manager!
-    salesAssociates: [SalesAssociate!]!
-    inventory: [InventoryItem!]!
 }
 
 type StoreLocation {
@@ -77,18 +75,21 @@ type LineItem {
     quantity: Int!
 }
 
+input StoreFilter {
+    name: String
+    city: String
+    state: String
+}
+
 type Query {
     customer(input: ID!): Customer
     customers: [Customer!]!
 
+    store(input: ID!): Store
+    stores(input: StoreFilter): [Store!]!
+
     employee(input: ID!): Employee
     employees: [Employee!]!
-
-    store(input: ID!): Store
-    stores: [Store!]!
-
-    storeLocation(input: ID!): StoreLocation
-    storeLocations: [StoreLocation!]!
 
     order(input: ID!): Order
     orders: [Order!]!
@@ -110,6 +111,24 @@ input CustomerInput {
 input ContactInfoInput {
     phoneNumber: String!
     emailAddress: String!
+}
+
+input NewStoreInput {
+    name: String!
+    location: StoreLocationInput!
+}
+
+input StoreInput {
+    id: ID!
+    name: String!
+    location: StoreLocationInput!
+}
+
+input StoreLocationInput {
+    street: String!
+    city: String!
+    state: String!
+    zipCode: String!
 }
 
 input NewManagerInput {
@@ -183,34 +202,14 @@ input ManufacturerInput {
     name: String!
 }
 
-input NewStoreInput {
-    location: StoreLocationInput!
-}
-
-input NewStoreLocationInput {
-    street: String!
-    city: String!
-    state: String!
-    zipCode: String!
-}
-
-input StoreInput {
-    id: ID!
-    location: StoreLocationInput!
-}
-
-input StoreLocationInput {
-    id: ID!
-    street: String!
-    city: String!
-    state: String!
-    zipCode: String!
-}
-
 type Mutation {
     createCustomer(input: NewCustomerInput!): Customer!
     updateCustomer(input: CustomerInput!): Customer
     deleteCustomer(input: ID!): Customer
+
+    createStore(input: NewStoreInput!): Store!
+    updateStore(input: StoreInput!): Store
+    deleteStore(input: ID!): Store
 
     createManager(input: NewManagerInput!): Manager!
     updateManager(input: ManagerInput!): Manager
@@ -231,12 +230,4 @@ type Mutation {
     createInventoryItem(input: NewInventoryItemInput!): InventoryItem!
     updateInventoryItem(input: InventoryItemInput!): InventoryItem
     deleteInventoryItem(input: ID!): InventoryItem
-
-    createStoreLocation(input: NewStoreLocationInput!): StoreLocation!
-    updateStoreLocation(input: StoreLocationInput!): StoreLocation
-    deleteStoreLocation(input: ID!): StoreLocation
-
-    createStore(input: NewStoreInput!): Store!
-    updateStore(input: StoreInput!): Store
-    deleteStore(input: ID!): Store
 }

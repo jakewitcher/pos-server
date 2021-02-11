@@ -13,15 +13,27 @@ import (
 )
 
 func (r *mutationResolver) CreateCustomer(ctx context.Context, input model.NewCustomerInput) (*model.Customer, error) {
-	return datastore.Customers.CreateCustomer(input), nil
+	return datastore.Customers.CreateCustomer(input)
 }
 
 func (r *mutationResolver) UpdateCustomer(ctx context.Context, input model.CustomerInput) (*model.Customer, error) {
-	return datastore.Customers.UpdateCustomer(input), nil
+	return datastore.Customers.UpdateCustomer(input)
 }
 
 func (r *mutationResolver) DeleteCustomer(ctx context.Context, input string) (*model.Customer, error) {
-	return datastore.Customers.DeleteCustomer(input), nil
+	return datastore.Customers.DeleteCustomer(input)
+}
+
+func (r *mutationResolver) CreateStore(ctx context.Context, input model.NewStoreInput) (*model.Store, error) {
+	return datastore.Stores.CreateStore(input)
+}
+
+func (r *mutationResolver) UpdateStore(ctx context.Context, input model.StoreInput) (*model.Store, error) {
+	return datastore.Stores.UpdateStore(input)
+}
+
+func (r *mutationResolver) DeleteStore(ctx context.Context, input string) (*model.Store, error) {
+	return datastore.Stores.DeleteStore(input)
 }
 
 func (r *mutationResolver) CreateManager(ctx context.Context, input model.NewManagerInput) (*model.Manager, error) {
@@ -84,36 +96,20 @@ func (r *mutationResolver) DeleteInventoryItem(ctx context.Context, input string
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *mutationResolver) CreateStoreLocation(ctx context.Context, input model.NewStoreLocationInput) (*model.StoreLocation, error) {
-	return datastore.StoreLocations.CreateStoreLocation(input), nil
-}
-
-func (r *mutationResolver) UpdateStoreLocation(ctx context.Context, input model.StoreLocationInput) (*model.StoreLocation, error) {
-	return datastore.StoreLocations.UpdateStoreLocation(input), nil
-}
-
-func (r *mutationResolver) DeleteStoreLocation(ctx context.Context, input string) (*model.StoreLocation, error) {
-	return datastore.StoreLocations.DeleteStoreLocation(input), nil
-}
-
-func (r *mutationResolver) CreateStore(ctx context.Context, input model.NewStoreInput) (*model.Store, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *mutationResolver) UpdateStore(ctx context.Context, input model.StoreInput) (*model.Store, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *mutationResolver) DeleteStore(ctx context.Context, input string) (*model.Store, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 func (r *queryResolver) Customer(ctx context.Context, input string) (*model.Customer, error) {
-	return datastore.Customers.FindCustomerById(input), nil
+	return datastore.Customers.FindCustomerById(input)
 }
 
 func (r *queryResolver) Customers(ctx context.Context) ([]*model.Customer, error) {
-	return datastore.Customers.FindAllCustomers(), nil
+	return datastore.Customers.FindAllCustomers()
+}
+
+func (r *queryResolver) Store(ctx context.Context, input string) (*model.Store, error) {
+	return datastore.Stores.FindStoreById(input)
+}
+
+func (r *queryResolver) Stores(ctx context.Context, input *model.StoreFilter) ([]*model.Store, error) {
+	return datastore.Stores.FindStores(input)
 }
 
 func (r *queryResolver) Employee(ctx context.Context, input string) (model.Employee, error) {
@@ -122,22 +118,6 @@ func (r *queryResolver) Employee(ctx context.Context, input string) (model.Emplo
 
 func (r *queryResolver) Employees(ctx context.Context) ([]model.Employee, error) {
 	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) Store(ctx context.Context, input string) (*model.Store, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) Stores(ctx context.Context) ([]*model.Store, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) StoreLocation(ctx context.Context, input string) (*model.StoreLocation, error) {
-	return datastore.StoreLocations.FindStoreLocationById(input), nil
-}
-
-func (r *queryResolver) StoreLocations(ctx context.Context) ([]*model.StoreLocation, error) {
-	return datastore.StoreLocations.FindAllStoreLocations(), nil
 }
 
 func (r *queryResolver) Order(ctx context.Context, input string) (*model.Order, error) {
