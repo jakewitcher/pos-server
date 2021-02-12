@@ -21,7 +21,6 @@ type StoreEntity struct {
 
 func (l *StoreLocationEntity) ToDTO() *model.StoreLocation {
 	return &model.StoreLocation{
-		ID:      strconv.FormatInt(l.Id, 10),
 		Street:  l.Street,
 		City:    l.City,
 		State:   l.State,

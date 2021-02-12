@@ -184,7 +184,6 @@ type StoreInput struct {
 }
 
 type StoreLocation struct {
-	ID      string `json:"id"`
 	Street  string `json:"street"`
 	City    string `json:"city"`
 	State   string `json:"state"`

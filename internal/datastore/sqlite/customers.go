@@ -15,17 +15,38 @@ type CustomerProvider struct {
 
 func (p *CustomerProvider) CreateCustomer(newCustomer model.NewCustomerInput) (*model.Customer, error) {
 	newContactInfo := newCustomer.ContactInfo
-
-	contactInfoId, err := p.insertNewContactInfo(newContactInfo)
+	trx, err := p.db.Begin()
 
 	if err != nil {
+		log.Println(err)
+		return nil, serverError
+	}
+
+	contactInfoId, err := p.insertNewContactInfo(trx, newContactInfo)
+
+	if err != nil {
+		if rollbackErr := trx.Rollback(); rollbackErr != nil {
+			log.Println(rollbackErr)
+		}
+
 		return nil, err
 	}
 
-	customerId, err := p.insertNewCustomer(newCustomer, contactInfoId)
+	customerId, err := p.insertNewCustomer(trx, newCustomer, contactInfoId)
 
 	if err != nil {
+		if rollbackErr := trx.Rollback(); rollbackErr != nil {
+			log.Println(rollbackErr)
+		}
+
 		return nil, err
+	}
+
+	err = trx.Commit()
+
+	if err != nil {
+		log.Println(err)
+		return nil, serverError
 	}
 
 	customer := &customers.CustomerEntity{
@@ -44,8 +65,8 @@ func (p *CustomerProvider) CreateCustomer(newCustomer model.NewCustomerInput) (*
 	return customer.ToDTO(contactInfo), nil
 }
 
-func (p *CustomerProvider) insertNewContactInfo(newContactInfo *model.ContactInfoInput) (int64, error) {
-	statement, err := p.db.Prepare(
+func (*CustomerProvider) insertNewContactInfo(trx *sql.Tx, newContactInfo *model.ContactInfoInput) (int64, error) {
+	statement, err := trx.Prepare(
 		`INSERT INTO ContactInfo(EmailAddress, PhoneNumber) 
 			   VALUES (?,?)`)
 
@@ -73,8 +94,8 @@ func (p *CustomerProvider) insertNewContactInfo(newContactInfo *model.ContactInf
 	return contactInfoId, nil
 }
 
-func (p *CustomerProvider) insertNewCustomer(newCustomer model.NewCustomerInput, contactInfoId int64) (int64, error) {
-	statement, err := p.db.Prepare(
+func (*CustomerProvider) insertNewCustomer(trx *sql.Tx, newCustomer model.NewCustomerInput, contactInfoId int64) (int64, error) {
+	statement, err := trx.Prepare(
 		`INSERT INTO Customer(FirstName, LastName, ContactInfoId) 
 			   VALUES (?,?,?)`)
 
@@ -104,11 +125,17 @@ func (p *CustomerProvider) insertNewCustomer(newCustomer model.NewCustomerInput,
 
 func (p *CustomerProvider) UpdateCustomer(updatedCustomer model.CustomerInput) (*model.Customer, error) {
 	updatedContactInfo := updatedCustomer.ContactInfo
+	trx, err := p.db.Begin()
+
+	if err != nil {
+		log.Print(err)
+		return nil, serverError
+	}
 
 	customerId, err := strconv.ParseInt(updatedCustomer.ID, 10, 64)
 
 	if err != nil {
-		return nil, newInvalidIdError(customer, updatedCustomer.ID)
+		return nil, newInvalidIdError(Customer, updatedCustomer.ID)
 	}
 
 	contactInfoId, err := p.getContactInfoIdByCustomerId(customerId)
@@ -117,16 +144,31 @@ func (p *CustomerProvider) UpdateCustomer(updatedCustomer model.CustomerInput) (
 		return nil, err
 	}
 
-	err = p.updateContactInfo(updatedContactInfo, contactInfoId)
+	err = p.updateContactInfo(trx, updatedContactInfo, contactInfoId)
 
 	if err != nil {
+		if rollbackErr := trx.Rollback(); rollbackErr != nil {
+			log.Println(rollbackErr)
+		}
+
 		return nil, err
 	}
 
-	err = p.updateCustomer(updatedCustomer, customerId)
+	err = p.updateCustomer(trx, updatedCustomer, customerId)
 
 	if err != nil {
+		if rollbackErr := trx.Rollback(); rollbackErr != nil {
+			log.Println(rollbackErr)
+		}
+
 		return nil, err
+	}
+
+	err = trx.Commit()
+
+	if err != nil {
+		log.Println(err)
+		return nil, serverError
 	}
 
 	contactInfo := &customers.ContactInfoEntity{
@@ -145,8 +187,8 @@ func (p *CustomerProvider) UpdateCustomer(updatedCustomer model.CustomerInput) (
 	return customer.ToDTO(contactInfo), nil
 }
 
-func (p *CustomerProvider) updateContactInfo(updatedContactInfo *model.ContactInfoInput, contactInfoId int64) error {
-	statement, err := p.db.Prepare(
+func (*CustomerProvider) updateContactInfo(trx *sql.Tx, updatedContactInfo *model.ContactInfoInput, contactInfoId int64) error {
+	statement, err := trx.Prepare(
 		`UPDATE ContactInfo
 			   SET EmailAddress = ?,
 				   PhoneNumber = ?
@@ -169,8 +211,8 @@ func (p *CustomerProvider) updateContactInfo(updatedContactInfo *model.ContactIn
 	return nil
 }
 
-func (p *CustomerProvider) updateCustomer(updatedCustomer model.CustomerInput, customerId int64) error {
-	statement, err := p.db.Prepare(
+func (*CustomerProvider) updateCustomer(trx *sql.Tx, updatedCustomer model.CustomerInput, customerId int64) error {
+	statement, err := trx.Prepare(
 		`UPDATE Customer
 			   SET FirstName = ?,
 			   	   LastName = ?
@@ -212,7 +254,7 @@ func (p *CustomerProvider) getContactInfoIdByCustomerId(customerId int64) (int64
 	err = row.Scan(&contactInfoId)
 
 	if err == sql.ErrNoRows {
-		return 0, newNotFoundError(customer, customerId)
+		return 0, newNotFoundError(Customer, customerId)
 	}
 
 	if err != nil {
@@ -227,7 +269,14 @@ func (p *CustomerProvider) DeleteCustomer(customerId string) (*model.Customer, e
 	id, err := strconv.ParseInt(customerId, 10, 64)
 
 	if err != nil {
-		return nil, newInvalidIdError(customer, customerId)
+		return nil, newInvalidIdError(Customer, customerId)
+	}
+
+	trx, err := p.db.Begin()
+
+	if err != nil {
+		log.Println(err)
+		return nil, serverError
 	}
 
 	customer, contactInfo, err := p.findCustomerAndContactInfoByCustomerId(id)
@@ -236,23 +285,38 @@ func (p *CustomerProvider) DeleteCustomer(customerId string) (*model.Customer, e
 		return nil, err
 	}
 
-	err = p.deleteContactInfoById(contactInfo.Id)
+	err = p.deleteContactInfoById(trx, contactInfo.Id)
 
 	if err != nil {
+		if rollbackErr := trx.Rollback(); rollbackErr != nil {
+			log.Println(rollbackErr)
+		}
+
 		return nil, err
 	}
 
-	err = p.deleteCustomerById(customer.Id)
+	err = p.deleteCustomerById(trx, customer.Id)
 
 	if err != nil {
+		if rollbackErr := trx.Rollback(); rollbackErr != nil {
+			log.Println(rollbackErr)
+		}
+
 		return nil, err
+	}
+
+	err = trx.Commit()
+
+	if err != nil {
+		log.Println(err)
+		return nil, serverError
 	}
 
 	return customer.ToDTO(contactInfo), nil
 }
 
-func (p *CustomerProvider) deleteCustomerById(customerId int64) error {
-	statement, err := p.db.Prepare(
+func (*CustomerProvider) deleteCustomerById(trx *sql.Tx, customerId int64) error {
+	statement, err := trx.Prepare(
 		`DELETE FROM Customer 
 			   WHERE Id = ?`)
 
@@ -273,8 +337,8 @@ func (p *CustomerProvider) deleteCustomerById(customerId int64) error {
 	return nil
 }
 
-func (p *CustomerProvider) deleteContactInfoById(contactInfoId int64) error {
-	statement, err := p.db.Prepare(
+func (*CustomerProvider) deleteContactInfoById(trx *sql.Tx, contactInfoId int64) error {
+	statement, err := trx.Prepare(
 		`DELETE FROM ContactInfo 
 			   WHERE Id = ?`)
 
@@ -299,7 +363,7 @@ func (p *CustomerProvider) FindCustomerById(customerId string) (*model.Customer,
 	id, err := strconv.ParseInt(customerId, 10, 64)
 
 	if err != nil {
-		return nil, newInvalidIdError(customer, customerId)
+		return nil, newInvalidIdError(Customer, customerId)
 	}
 
 	customer, contactInfo, err := p.findCustomerAndContactInfoByCustomerId(id)
@@ -338,6 +402,11 @@ func (p *CustomerProvider) findCustomerAndContactInfoByCustomerId(customerId int
 		&contactInfo.Id,
 		&contactInfo.EmailAddress,
 		&contactInfo.PhoneNumber)
+
+	if err == sql.ErrNoRows {
+		log.Println(err)
+		return nil, nil, newNotFoundError(Customer, customerId)
+	}
 
 	if err != nil {
 		log.Println(err)
@@ -420,7 +489,7 @@ func (p *CustomerProvider) buildQuery(base string, filter *model.CustomerFilter)
 		values = append(values, *filter.EmailAddress)
 	}
 
-	if len(columns) < 1 {
+	if len(columns) == 0 {
 		return base, values
 	}
 

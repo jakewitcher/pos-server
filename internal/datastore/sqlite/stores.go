@@ -15,16 +15,38 @@ type StoreProvider struct {
 
 func (p *StoreProvider) CreateStore(newStore model.NewStoreInput) (*model.Store, error) {
 	newStoreLocation := newStore.Location
-
-	storeLocationId, err := p.insertNewStoreLocation(newStoreLocation)
+	trx, err := p.db.Begin()
 
 	if err != nil {
+		log.Println(err)
+		return nil, serverError
+	}
+
+	storeLocationId, err := p.insertNewStoreLocation(trx, newStoreLocation)
+
+	if err != nil {
+		if rollbackErr := trx.Rollback(); rollbackErr != nil {
+			log.Println(rollbackErr)
+		}
+
 		return nil, err
 	}
 
-	storeId, err := p.insertNewStore(newStore, storeLocationId)
+	storeId, err := p.insertNewStore(trx, newStore, storeLocationId)
+
 	if err != nil {
+		if rollbackErr := trx.Rollback(); rollbackErr != nil {
+			log.Println(rollbackErr)
+		}
+
 		return nil, err
+	}
+
+	err = trx.Commit()
+
+	if err != nil {
+		log.Println(err)
+		return nil, serverError
 	}
 
 	store := &stores.StoreEntity{
@@ -44,8 +66,8 @@ func (p *StoreProvider) CreateStore(newStore model.NewStoreInput) (*model.Store,
 	return store.ToDTO(location), nil
 }
 
-func (p *StoreProvider) insertNewStoreLocation(newStoreLocation *model.StoreLocationInput) (int64, error) {
-	statement, err := p.db.Prepare(
+func (*StoreProvider) insertNewStoreLocation(trx *sql.Tx, newStoreLocation *model.StoreLocationInput) (int64, error) {
+	statement, err := trx.Prepare(
 		`INSERT INTO StoreLocation(Street, City, State, ZipCode) 
 			   VALUES (?,?,?,?)`)
 
@@ -77,8 +99,8 @@ func (p *StoreProvider) insertNewStoreLocation(newStoreLocation *model.StoreLoca
 	return storeLocationId, nil
 }
 
-func (p *StoreProvider) insertNewStore(newStore model.NewStoreInput, storeLocationId int64) (int64, error) {
-	statement, err := p.db.Prepare(
+func (*StoreProvider) insertNewStore(trx *sql.Tx, newStore model.NewStoreInput, storeLocationId int64) (int64, error) {
+	statement, err := trx.Prepare(
 		`INSERT INTO Store(Name, LocationId) 
 			   VALUES (?,?)`)
 
@@ -108,11 +130,17 @@ func (p *StoreProvider) insertNewStore(newStore model.NewStoreInput, storeLocati
 
 func (p *StoreProvider) UpdateStore(updatedStore model.StoreInput) (*model.Store, error) {
 	updatedStoreLocation := updatedStore.Location
+	trx, err := p.db.Begin()
+
+	if err != nil {
+		log.Print(err)
+		return nil, serverError
+	}
 
 	storeId, err := strconv.ParseInt(updatedStore.ID, 10, 64)
 
 	if err != nil {
-		return nil, newInvalidIdError(store, updatedStore.ID)
+		return nil, newInvalidIdError(Store, updatedStore.ID)
 	}
 
 	storeLocationId, err := p.getStoreLocationIdByStoreId(storeId)
@@ -121,16 +149,31 @@ func (p *StoreProvider) UpdateStore(updatedStore model.StoreInput) (*model.Store
 		return nil, err
 	}
 
-	err = p.updateStoreLocation(updatedStoreLocation, storeLocationId)
+	err = p.updateStoreLocation(trx, updatedStoreLocation, storeLocationId)
 
 	if err != nil {
+		if rollbackErr := trx.Rollback(); rollbackErr != nil {
+			log.Println(rollbackErr)
+		}
+
 		return nil, err
 	}
 
-	err = p.updateStore(updatedStore, storeId)
+	err = p.updateStore(trx, updatedStore, storeId)
 
 	if err != nil {
+		if rollbackErr := trx.Rollback(); rollbackErr != nil {
+			log.Println(rollbackErr)
+		}
+
 		return nil, err
+	}
+
+	err = trx.Commit()
+
+	if err != nil {
+		log.Println(err)
+		return nil, serverError
 	}
 
 	storeLocation := &stores.StoreLocationEntity{
@@ -149,8 +192,8 @@ func (p *StoreProvider) UpdateStore(updatedStore model.StoreInput) (*model.Store
 	return store.ToDTO(storeLocation), nil
 }
 
-func (p *StoreProvider) updateStoreLocation(updatedStoreLocation *model.StoreLocationInput, storeLocationId int64) error {
-	statement, err := p.db.Prepare(
+func (*StoreProvider) updateStoreLocation(trx *sql.Tx, updatedStoreLocation *model.StoreLocationInput, storeLocationId int64) error {
+	statement, err := trx.Prepare(
 		`UPDATE StoreLocation
 			   SET Street = ?,
 				   City = ?,
@@ -180,8 +223,8 @@ func (p *StoreProvider) updateStoreLocation(updatedStoreLocation *model.StoreLoc
 	return nil
 }
 
-func (p *StoreProvider) updateStore(updatedStore model.StoreInput, storeId int64) error {
-	statement, err := p.db.Prepare(
+func (*StoreProvider) updateStore(trx *sql.Tx, updatedStore model.StoreInput, storeId int64) error {
+	statement, err := trx.Prepare(
 		`UPDATE Store
 			   SET Name = ?
 			   WHERE Id = ?`)
@@ -222,7 +265,7 @@ func (p *StoreProvider) getStoreLocationIdByStoreId(storeId int64) (int64, error
 	err = row.Scan(&locationId)
 
 	if err == sql.ErrNoRows {
-		return 0, newNotFoundError(store, storeId)
+		return 0, newNotFoundError(Store, storeId)
 	}
 
 	if err != nil {
@@ -236,7 +279,14 @@ func (p *StoreProvider) DeleteStore(storeId string) (*model.Store, error) {
 	id, err := strconv.ParseInt(storeId, 10, 64)
 
 	if err != nil {
-		return nil, newInvalidIdError(store, storeId)
+		return nil, newInvalidIdError(Store, storeId)
+	}
+
+	trx, err := p.db.Begin()
+
+	if err != nil {
+		log.Println(err)
+		return nil, serverError
 	}
 
 	store, storeLocation, err := p.findStoreAndStoreLocationByStoreId(id)
@@ -245,23 +295,38 @@ func (p *StoreProvider) DeleteStore(storeId string) (*model.Store, error) {
 		return nil, err
 	}
 
-	err = p.deleteStoreLocation(storeLocation.Id)
+	err = p.deleteStoreLocation(trx, storeLocation.Id)
 
 	if err != nil {
+		if rollbackErr := trx.Rollback(); rollbackErr != nil {
+			log.Println(rollbackErr)
+		}
+
 		return nil, err
 	}
 
-	err = p.deleteStore(store.Id)
+	err = p.deleteStore(trx, store.Id)
 
 	if err != nil {
+		if rollbackErr := trx.Rollback(); rollbackErr != nil {
+			log.Println(rollbackErr)
+		}
+
 		return nil, err
+	}
+
+	err = trx.Commit()
+
+	if err != nil {
+		log.Println(err)
+		return nil, serverError
 	}
 
 	return store.ToDTO(storeLocation), nil
 }
 
-func (p *StoreProvider) deleteStoreLocation(storeLocationId int64) error {
-	statement, err := p.db.Prepare(
+func (*StoreProvider) deleteStoreLocation(trx *sql.Tx, storeLocationId int64) error {
+	statement, err := trx.Prepare(
 		`DELETE FROM StoreLocation 
 			   WHERE Id = ?`)
 
@@ -282,8 +347,8 @@ func (p *StoreProvider) deleteStoreLocation(storeLocationId int64) error {
 	return nil
 }
 
-func (p *StoreProvider) deleteStore(storeId int64) error {
-	statement, err := p.db.Prepare(
+func (*StoreProvider) deleteStore(trx *sql.Tx, storeId int64) error {
+	statement, err := trx.Prepare(
 		`DELETE FROM Store 
 			   WHERE Id = ?`)
 
@@ -309,7 +374,7 @@ func (p *StoreProvider) FindStoreById(storeId string) (*model.Store, error) {
 
 	if err != nil {
 		log.Println(err)
-		return nil, newInvalidIdError(store, storeId)
+		return nil, newInvalidIdError(Store, storeId)
 	}
 
 	store, storeLocation, err := p.findStoreAndStoreLocationByStoreId(id)
@@ -349,6 +414,11 @@ func (p *StoreProvider) findStoreAndStoreLocationByStoreId(storeId int64) (*stor
 		&storeLocation.City,
 		&storeLocation.State,
 		&storeLocation.ZipCode)
+
+	if err == sql.ErrNoRows {
+		log.Println(err)
+		return nil, nil, newNotFoundError(Store, storeId)
+	}
 
 	if err != nil {
 		log.Println(err)
@@ -420,21 +490,21 @@ func (p *StoreProvider) buildQuery(base string, filter *model.StoreFilter) (stri
 	}
 
 	if filter.Name != nil {
-		columns = append(columns, "Name = ?")
+		columns = append(columns, "S.Name = ?")
 		values = append(values, *filter.Name)
 	}
 
 	if filter.City != nil {
-		columns = append(columns, "City = ?")
+		columns = append(columns, "SL.City = ?")
 		values = append(values, *filter.City)
 	}
 
 	if filter.State != nil {
-		columns = append(columns, "State = ?")
+		columns = append(columns, "SL.State = ?")
 		values = append(values, *filter.State)
 	}
 
-	if len(columns) < 1 {
+	if len(columns) == 0 {
 		return base, values
 	}
 

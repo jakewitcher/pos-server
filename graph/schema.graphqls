@@ -54,7 +54,6 @@ type Store {
 }
 
 type StoreLocation {
-    id: ID!
     street: String!
     city: String!
     state: String!

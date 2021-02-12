@@ -142,7 +142,6 @@ type ComplexityRoot struct {
 
 	StoreLocation struct {
 		City    func(childComplexity int) int
-		ID      func(childComplexity int) int
 		State   func(childComplexity int) int
 		Street  func(childComplexity int) int
 		ZipCode func(childComplexity int) int
@@ -781,13 +780,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StoreLocation.City(childComplexity), true
 
-	case "StoreLocation.id":
-		if e.complexity.StoreLocation.ID == nil {
-			break
-		}
-
-		return e.complexity.StoreLocation.ID(childComplexity), true
-
 	case "StoreLocation.state":
 		if e.complexity.StoreLocation.State == nil {
 			break
@@ -929,7 +921,6 @@ type Store {
 }
 
 type StoreLocation {
-    id: ID!
     street: String!
     city: String!
     state: String!
@@ -3988,41 +3979,6 @@ func (ec *executionContext) _Store_location(ctx context.Context, field graphql.C
 	return ec.marshalNStoreLocation2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocation(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _StoreLocation_id(ctx context.Context, field graphql.CollectedField, obj *model.StoreLocation) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "StoreLocation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _StoreLocation_street(ctx context.Context, field graphql.CollectedField, obj *model.StoreLocation) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6603,11 +6559,6 @@ func (ec *executionContext) _StoreLocation(ctx context.Context, sel ast.Selectio
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("StoreLocation")
-		case "id":
-			out.Values[i] = ec._StoreLocation_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "street":
 			out.Values[i] = ec._StoreLocation_street(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
