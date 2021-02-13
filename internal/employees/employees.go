@@ -6,16 +6,16 @@ import (
 )
 
 type ManagerEntity struct {
-	Id        int    `json:"id"`
-	StoreId   int    `json:"store_id"`
+	Id        int64  `json:"id"`
+	StoreId   int64  `json:"store_id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Password  string `json:"password"`
 }
 
 type SalesAssociateEntity struct {
-	Id        int    `json:"id"`
-	StoreId   int    `json:"store_id"`
+	Id        int64  `json:"id"`
+	StoreId   int64  `json:"store_id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Password  string `json:"password"`
@@ -23,8 +23,8 @@ type SalesAssociateEntity struct {
 
 func (m *ManagerEntity) ToDTO() *model.Manager {
 	return &model.Manager{
-		ID:        strconv.Itoa(m.Id),
-		StoreID:   strconv.Itoa(m.StoreId),
+		ID:        strconv.FormatInt(m.Id, 10),
+		StoreID:   strconv.FormatInt(m.StoreId, 10),
 		FirstName: m.FirstName,
 		LastName:  m.LastName,
 	}
@@ -32,8 +32,8 @@ func (m *ManagerEntity) ToDTO() *model.Manager {
 
 func (s *SalesAssociateEntity) ToDTO() *model.SalesAssociate {
 	return &model.SalesAssociate{
-		ID:        strconv.Itoa(s.Id),
-		StoreID:   strconv.Itoa(s.StoreId),
+		ID:        strconv.FormatInt(s.Id, 10),
+		StoreID:   strconv.FormatInt(s.StoreId, 10),
 		FirstName: s.FirstName,
 		LastName:  s.LastName,
 	}

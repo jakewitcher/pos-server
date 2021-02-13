@@ -20,8 +20,10 @@ var Db *sql.DB
 
 func init() {
 	Db = sqlite.OpenConnection()
+
 	datastore.Customers = sqlite.NewCustomerProvider(Db)
 	datastore.Stores = sqlite.NewStoreProvider(Db)
+	datastore.Employees = sqlite.NewEmployeeProvider(Db)
 }
 
 func main() {

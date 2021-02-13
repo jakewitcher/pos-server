@@ -1007,6 +1007,7 @@ input NewManagerInput {
     storeId: ID!
     firstName: String!
     lastName: String!
+    password: String!
 }
 
 input ManagerInput {
@@ -1014,12 +1015,14 @@ input ManagerInput {
     storeId: ID!
     firstName: String!
     lastName: String!
+    password: String!
 }
 
 input NewSalesAssociateInput {
     storeId: ID!
     firstName: String!
     lastName: String!
+    password: String!
 }
 
 input SalesAssociateInput {
@@ -1027,6 +1030,7 @@ input SalesAssociateInput {
     storeId: ID!
     firstName: String!
     lastName: String!
+    password: String!
 }
 
 input NewOrderInput {
@@ -5440,6 +5444,14 @@ func (ec *executionContext) unmarshalInputManagerInput(ctx context.Context, obj 
 			if err != nil {
 				return it, err
 			}
+		case "password":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			it.Password, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -5584,6 +5596,14 @@ func (ec *executionContext) unmarshalInputNewManagerInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
+		case "password":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			it.Password, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -5681,6 +5701,14 @@ func (ec *executionContext) unmarshalInputNewSalesAssociateInput(ctx context.Con
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
 			it.LastName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "password":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			it.Password, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5805,6 +5833,14 @@ func (ec *executionContext) unmarshalInputSalesAssociateInput(ctx context.Contex
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
 			it.LastName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "password":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			it.Password, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

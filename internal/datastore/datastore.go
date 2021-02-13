@@ -7,6 +7,7 @@ import (
 var (
 	Customers CustomerProvider
 	Stores    StoreProvider
+	Employees EmployeeProvider
 )
 
 type CustomerProvider interface {
@@ -23,4 +24,8 @@ type StoreProvider interface {
 	DeleteStore(storeId string) (*model.Store, error)
 	FindStoreById(storeId string) (*model.Store, error)
 	FindStores(filter *model.StoreFilter) ([]*model.Store, error)
+}
+
+type EmployeeProvider interface {
+	CreateManager(newManager model.NewManagerInput) (*model.Manager, error)
 }

@@ -140,6 +140,7 @@ input NewManagerInput {
     storeId: ID!
     firstName: String!
     lastName: String!
+    password: String!
 }
 
 input ManagerInput {
@@ -147,12 +148,14 @@ input ManagerInput {
     storeId: ID!
     firstName: String!
     lastName: String!
+    password: String!
 }
 
 input NewSalesAssociateInput {
     storeId: ID!
     firstName: String!
     lastName: String!
+    password: String!
 }
 
 input SalesAssociateInput {
@@ -160,6 +163,7 @@ input SalesAssociateInput {
     storeId: ID!
     firstName: String!
     lastName: String!
+    password: String!
 }
 
 input NewOrderInput {

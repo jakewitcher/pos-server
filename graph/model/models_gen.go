@@ -79,6 +79,7 @@ type ManagerInput struct {
 	StoreID   string `json:"storeId"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
+	Password  string `json:"password"`
 }
 
 type Manufacturer struct {
@@ -108,6 +109,7 @@ type NewManagerInput struct {
 	StoreID   string `json:"storeId"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
+	Password  string `json:"password"`
 }
 
 type NewManufacturerInput struct {
@@ -125,6 +127,7 @@ type NewSalesAssociateInput struct {
 	StoreID   string `json:"storeId"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
+	Password  string `json:"password"`
 }
 
 type NewStoreInput struct {
@@ -163,6 +166,7 @@ type SalesAssociateInput struct {
 	StoreID   string `json:"storeId"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
+	Password  string `json:"password"`
 }
 
 type Store struct {
