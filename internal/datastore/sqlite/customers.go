@@ -404,7 +404,6 @@ func (p *CustomerProvider) findCustomerAndContactInfoByCustomerId(customerId int
 		&contactInfo.PhoneNumber)
 
 	if err == sql.ErrNoRows {
-		log.Println(err)
 		return nil, nil, newNotFoundError(Customer, customerId)
 	}
 

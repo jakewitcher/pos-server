@@ -113,6 +113,81 @@ func (p *EmployeeProvider) updateManager(updatedManager model.ManagerInput, stor
 	return nil
 }
 
+func (p *EmployeeProvider) DeleteManager(managerId string) (*model.Manager, error) {
+	id, err := strconv.ParseInt(managerId, 10, 64)
+
+	if err != nil {
+		return nil, newInvalidIdError(Manager, managerId)
+	}
+
+	manager, err := p.findManagerById(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.deleteManager(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return manager.ToDTO(), nil
+}
+
+func (p *EmployeeProvider) deleteManager(id int64) error {
+	statement, err := p.db.Prepare(
+		`DELETE FROM Manager 
+			   WHERE Id = ?`)
+
+	if err != nil {
+		log.Println(err)
+		return serverError
+	}
+
+	_, err = statement.Exec(id)
+
+	if err != nil {
+		log.Println(err)
+		return serverError
+	}
+
+	return nil
+}
+
+func (p *EmployeeProvider) findManagerById(managerId int64) (*employees.ManagerEntity, error) {
+	statement, err := p.db.Prepare(
+		`SELECT Id, StoreId, FirstName, LastName
+			   FROM Manager
+			   WHERE Id = ?`)
+
+	if err != nil {
+		log.Println(err)
+		return nil, serverError
+	}
+
+	row := statement.QueryRow(managerId)
+
+	manager := &employees.ManagerEntity{}
+
+	err = row.Scan(
+		&manager.Id,
+		&manager.StoreId,
+		&manager.FirstName,
+		&manager.LastName)
+
+	if err == sql.ErrNoRows {
+		return nil, newNotFoundError(Manager, managerId)
+	}
+
+	if err != nil {
+		log.Println(err)
+		return nil, serverError
+	}
+
+	return manager, nil
+}
+
 func NewEmployeeProvider(db *sql.DB) *EmployeeProvider {
 	return &EmployeeProvider{db: db}
 }

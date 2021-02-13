@@ -416,7 +416,6 @@ func (p *StoreProvider) findStoreAndStoreLocationByStoreId(storeId int64) (*stor
 		&storeLocation.ZipCode)
 
 	if err == sql.ErrNoRows {
-		log.Println(err)
 		return nil, nil, newNotFoundError(Store, storeId)
 	}
 
