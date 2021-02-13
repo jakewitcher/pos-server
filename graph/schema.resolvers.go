@@ -117,7 +117,7 @@ func (r *queryResolver) Manager(ctx context.Context, input string) (*model.Manag
 }
 
 func (r *queryResolver) Managers(ctx context.Context) ([]*model.Manager, error) {
-	panic(fmt.Errorf("not implemented"))
+	return datastore.Employees.FindManagers()
 }
 
 func (r *queryResolver) SalesAssociate(ctx context.Context, input string) (*model.SalesAssociate, error) {

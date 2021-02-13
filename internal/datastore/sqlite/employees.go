@@ -171,6 +171,50 @@ func (p *EmployeeProvider) FindManagerById(managerId string) (*model.Manager, er
 	return manager.ToDTO(), nil
 }
 
+func (p *EmployeeProvider) FindManagers() ([]*model.Manager, error) {
+	statement, err := p.db.Prepare(
+		`SELECT Id, StoreId, FirstName, LastName 
+			   FROM Manager`)
+
+	if err != nil {
+		log.Println(err)
+		return nil, serverError
+	}
+
+	defer statement.Close()
+
+	rows, err := statement.Query()
+
+	if err != nil {
+		log.Println(err)
+		return nil, serverError
+	}
+
+	defer rows.Close()
+
+	managerModels := make([]*model.Manager, 0)
+
+	for rows.Next() {
+		manager := &employees.ManagerEntity{}
+
+		err := rows.Scan(
+			&manager.Id,
+			&manager.StoreId,
+			&manager.FirstName,
+			&manager.LastName)
+
+		if err != nil {
+			log.Println(err)
+			return nil, serverError
+		}
+
+		managerModel := manager.ToDTO()
+		managerModels = append(managerModels, managerModel)
+	}
+
+	return managerModels, nil
+}
+
 func (p *EmployeeProvider) findManagerById(managerId int64) (*employees.ManagerEntity, error) {
 	statement, err := p.db.Prepare(
 		`SELECT Id, StoreId, FirstName, LastName
