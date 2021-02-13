@@ -30,4 +30,5 @@ type EmployeeProvider interface {
 	CreateManager(newManager model.NewManagerInput) (*model.Manager, error)
 	UpdateManager(updatedManager model.ManagerInput) (*model.Manager, error)
 	DeleteManager(managerId string) (*model.Manager, error)
+	FindManagerById(managerId string) (*model.Manager, error)
 }

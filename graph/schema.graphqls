@@ -90,6 +90,12 @@ type Query {
     store(input: ID!): Store
     stores(input: StoreFilter): [Store!]!
 
+    manager(input: ID!): Manager
+    managers: [Manager!]!
+
+    salesAssociate(input: ID!): SalesAssociate
+    salesAssociates: [SalesAssociate!]!
+
     employee(input: ID!): Employee
     employees: [Employee!]!
 

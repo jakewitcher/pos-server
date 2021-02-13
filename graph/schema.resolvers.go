@@ -45,7 +45,7 @@ func (r *mutationResolver) UpdateManager(ctx context.Context, input model.Manage
 }
 
 func (r *mutationResolver) DeleteManager(ctx context.Context, input string) (*model.Manager, error) {
-	panic(fmt.Errorf("not implemented"))
+	return datastore.Employees.DeleteManager(input)
 }
 
 func (r *mutationResolver) CreateSalesAssociate(ctx context.Context, input model.NewSalesAssociateInput) (*model.SalesAssociate, error) {
@@ -110,6 +110,22 @@ func (r *queryResolver) Store(ctx context.Context, input string) (*model.Store, 
 
 func (r *queryResolver) Stores(ctx context.Context, input *model.StoreFilter) ([]*model.Store, error) {
 	return datastore.Stores.FindStores(input)
+}
+
+func (r *queryResolver) Manager(ctx context.Context, input string) (*model.Manager, error) {
+	return datastore.Employees.FindManagerById(input)
+}
+
+func (r *queryResolver) Managers(ctx context.Context) ([]*model.Manager, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) SalesAssociate(ctx context.Context, input string) (*model.SalesAssociate, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) SalesAssociates(ctx context.Context) ([]*model.SalesAssociate, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) Employee(ctx context.Context, input string) (model.Employee, error) {

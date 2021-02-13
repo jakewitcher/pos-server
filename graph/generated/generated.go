@@ -115,14 +115,18 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Customer  func(childComplexity int, input string) int
-		Customers func(childComplexity int, input *model.CustomerFilter) int
-		Employee  func(childComplexity int, input string) int
-		Employees func(childComplexity int) int
-		Order     func(childComplexity int, input string) int
-		Orders    func(childComplexity int) int
-		Store     func(childComplexity int, input string) int
-		Stores    func(childComplexity int, input *model.StoreFilter) int
+		Customer        func(childComplexity int, input string) int
+		Customers       func(childComplexity int, input *model.CustomerFilter) int
+		Employee        func(childComplexity int, input string) int
+		Employees       func(childComplexity int) int
+		Manager         func(childComplexity int, input string) int
+		Managers        func(childComplexity int) int
+		Order           func(childComplexity int, input string) int
+		Orders          func(childComplexity int) int
+		SalesAssociate  func(childComplexity int, input string) int
+		SalesAssociates func(childComplexity int) int
+		Store           func(childComplexity int, input string) int
+		Stores          func(childComplexity int, input *model.StoreFilter) int
 	}
 
 	SalesAssociate struct {
@@ -174,6 +178,10 @@ type QueryResolver interface {
 	Customers(ctx context.Context, input *model.CustomerFilter) ([]*model.Customer, error)
 	Store(ctx context.Context, input string) (*model.Store, error)
 	Stores(ctx context.Context, input *model.StoreFilter) ([]*model.Store, error)
+	Manager(ctx context.Context, input string) (*model.Manager, error)
+	Managers(ctx context.Context) ([]*model.Manager, error)
+	SalesAssociate(ctx context.Context, input string) (*model.SalesAssociate, error)
+	SalesAssociates(ctx context.Context) ([]*model.SalesAssociate, error)
 	Employee(ctx context.Context, input string) (model.Employee, error)
 	Employees(ctx context.Context) ([]model.Employee, error)
 	Order(ctx context.Context, input string) (*model.Order, error)
@@ -665,6 +673,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Employees(childComplexity), true
 
+	case "Query.manager":
+		if e.complexity.Query.Manager == nil {
+			break
+		}
+
+		args, err := ec.field_Query_manager_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Manager(childComplexity, args["input"].(string)), true
+
+	case "Query.managers":
+		if e.complexity.Query.Managers == nil {
+			break
+		}
+
+		return e.complexity.Query.Managers(childComplexity), true
+
 	case "Query.order":
 		if e.complexity.Query.Order == nil {
 			break
@@ -683,6 +710,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Orders(childComplexity), true
+
+	case "Query.salesAssociate":
+		if e.complexity.Query.SalesAssociate == nil {
+			break
+		}
+
+		args, err := ec.field_Query_salesAssociate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SalesAssociate(childComplexity, args["input"].(string)), true
+
+	case "Query.salesAssociates":
+		if e.complexity.Query.SalesAssociates == nil {
+			break
+		}
+
+		return e.complexity.Query.SalesAssociates(childComplexity), true
 
 	case "Query.store":
 		if e.complexity.Query.Store == nil {
@@ -940,6 +986,12 @@ type Query {
 
     store(input: ID!): Store
     stores(input: StoreFilter): [Store!]!
+
+    manager(input: ID!): Manager
+    managers: [Manager!]!
+
+    salesAssociate(input: ID!): SalesAssociate
+    salesAssociates: [SalesAssociate!]!
 
     employee(input: ID!): Employee
     employees: [Employee!]!
@@ -1470,7 +1522,37 @@ func (ec *executionContext) field_Query_employee_args(ctx context.Context, rawAr
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_manager_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_order_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_salesAssociate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -3428,6 +3510,154 @@ func (ec *executionContext) _Query_stores(ctx context.Context, field graphql.Col
 	res := resTmp.([]*model.Store)
 	fc.Result = res
 	return ec.marshalNStore2ᚕᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_manager(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_manager_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Manager(rctx, args["input"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Manager)
+	fc.Result = res
+	return ec.marshalOManager2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManager(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_managers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Managers(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Manager)
+	fc.Result = res
+	return ec.marshalNManager2ᚕᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManagerᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_salesAssociate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_salesAssociate_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SalesAssociate(rctx, args["input"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.SalesAssociate)
+	fc.Result = res
+	return ec.marshalOSalesAssociate2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_salesAssociates(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SalesAssociates(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.SalesAssociate)
+	fc.Result = res
+	return ec.marshalNSalesAssociate2ᚕᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociateᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_employee(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6341,6 +6571,56 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "manager":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_manager(ctx, field)
+				return res
+			})
+		case "managers":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_managers(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "salesAssociate":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_salesAssociate(ctx, field)
+				return res
+			})
+		case "salesAssociates":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_salesAssociates(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "employee":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -7046,6 +7326,43 @@ func (ec *executionContext) marshalNManager2githubᚗcomᚋjakewitcherᚋposᚑs
 	return ec._Manager(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNManager2ᚕᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManagerᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Manager) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNManager2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManager(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNManager2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManager(ctx context.Context, sel ast.SelectionSet, v *model.Manager) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -7178,6 +7495,43 @@ func (ec *executionContext) unmarshalNOrderInput2githubᚗcomᚋjakewitcherᚋpo
 
 func (ec *executionContext) marshalNSalesAssociate2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociate(ctx context.Context, sel ast.SelectionSet, v model.SalesAssociate) graphql.Marshaler {
 	return ec._SalesAssociate(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSalesAssociate2ᚕᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociateᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SalesAssociate) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSalesAssociate2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociate(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalNSalesAssociate2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociate(ctx context.Context, sel ast.SelectionSet, v *model.SalesAssociate) graphql.Marshaler {

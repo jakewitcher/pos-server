@@ -155,6 +155,22 @@ func (p *EmployeeProvider) deleteManager(id int64) error {
 	return nil
 }
 
+func (p *EmployeeProvider) FindManagerById(managerId string) (*model.Manager, error) {
+	id, err := strconv.ParseInt(managerId, 10, 64)
+
+	if err != nil {
+		return nil, newInvalidIdError(Manager, managerId)
+	}
+
+	manager, err := p.findManagerById(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return manager.ToDTO(), nil
+}
+
 func (p *EmployeeProvider) findManagerById(managerId int64) (*employees.ManagerEntity, error) {
 	statement, err := p.db.Prepare(
 		`SELECT Id, StoreId, FirstName, LastName
