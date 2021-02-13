@@ -74,7 +74,6 @@ type ComplexityRoot struct {
 		FirstName func(childComplexity int) int
 		ID        func(childComplexity int) int
 		LastName  func(childComplexity int) int
-		Password  func(childComplexity int) int
 		StoreID   func(childComplexity int) int
 	}
 
@@ -130,7 +129,6 @@ type ComplexityRoot struct {
 		FirstName func(childComplexity int) int
 		ID        func(childComplexity int) int
 		LastName  func(childComplexity int) int
-		Password  func(childComplexity int) int
 		StoreID   func(childComplexity int) int
 	}
 
@@ -315,13 +313,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Manager.LastName(childComplexity), true
-
-	case "Manager.password":
-		if e.complexity.Manager.Password == nil {
-			break
-		}
-
-		return e.complexity.Manager.Password(childComplexity), true
 
 	case "Manager.storeId":
 		if e.complexity.Manager.StoreID == nil {
@@ -738,13 +729,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SalesAssociate.LastName(childComplexity), true
 
-	case "SalesAssociate.password":
-		if e.complexity.SalesAssociate.Password == nil {
-			break
-		}
-
-		return e.complexity.SalesAssociate.Password(childComplexity), true
-
 	case "SalesAssociate.storeId":
 		if e.complexity.SalesAssociate.StoreID == nil {
 			break
@@ -882,7 +866,6 @@ interface Employee {
     storeId: ID!
     firstName: String!
     lastName: String!
-    password: String!
 }
 
 type Manager implements Employee {
@@ -890,7 +873,6 @@ type Manager implements Employee {
     storeId: ID!
     firstName: String!
     lastName: String!
-    password: String!
 }
 
 type SalesAssociate implements Employee {
@@ -898,7 +880,6 @@ type SalesAssociate implements Employee {
     storeId: ID!
     firstName: String!
     lastName: String!
-    password: String!
 }
 
 type InventoryItem {
@@ -2186,41 +2167,6 @@ func (ec *executionContext) _Manager_lastName(ctx context.Context, field graphql
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.LastName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Manager_password(ctx context.Context, field graphql.CollectedField, obj *model.Manager) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Manager",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Password, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3827,41 +3773,6 @@ func (ec *executionContext) _SalesAssociate_lastName(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.LastName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SalesAssociate_password(ctx context.Context, field graphql.CollectedField, obj *model.SalesAssociate) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SalesAssociate",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Password, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6186,11 +6097,6 @@ func (ec *executionContext) _Manager(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "password":
-			out.Values[i] = ec._Manager_password(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6528,11 +6434,6 @@ func (ec *executionContext) _SalesAssociate(ctx context.Context, sel ast.Selecti
 			}
 		case "lastName":
 			out.Values[i] = ec._SalesAssociate_lastName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "password":
-			out.Values[i] = ec._SalesAssociate_password(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

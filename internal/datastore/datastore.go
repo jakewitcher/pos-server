@@ -28,4 +28,5 @@ type StoreProvider interface {
 
 type EmployeeProvider interface {
 	CreateManager(newManager model.NewManagerInput) (*model.Manager, error)
+	UpdateManager(updatedManager model.ManagerInput) (*model.Manager, error)
 }

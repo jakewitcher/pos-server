@@ -37,11 +37,11 @@ func (r *mutationResolver) DeleteStore(ctx context.Context, input string) (*mode
 }
 
 func (r *mutationResolver) CreateManager(ctx context.Context, input model.NewManagerInput) (*model.Manager, error) {
-	panic(fmt.Errorf("not implemented"))
+	return datastore.Employees.CreateManager(input)
 }
 
 func (r *mutationResolver) UpdateManager(ctx context.Context, input model.ManagerInput) (*model.Manager, error) {
-	panic(fmt.Errorf("not implemented"))
+	return datastore.Employees.UpdateManager(input)
 }
 
 func (r *mutationResolver) DeleteManager(ctx context.Context, input string) (*model.Manager, error) {

@@ -15,7 +15,6 @@ interface Employee {
     storeId: ID!
     firstName: String!
     lastName: String!
-    password: String!
 }
 
 type Manager implements Employee {
@@ -23,7 +22,6 @@ type Manager implements Employee {
     storeId: ID!
     firstName: String!
     lastName: String!
-    password: String!
 }
 
 type SalesAssociate implements Employee {
@@ -31,7 +29,6 @@ type SalesAssociate implements Employee {
     storeId: ID!
     firstName: String!
     lastName: String!
-    password: String!
 }
 
 type InventoryItem {

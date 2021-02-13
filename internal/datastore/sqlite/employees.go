@@ -60,6 +60,59 @@ func (p *EmployeeProvider) insertNewManager(newManager model.NewManagerInput, st
 	return managerId, nil
 }
 
+func (p *EmployeeProvider) UpdateManager(updatedManager model.ManagerInput) (*model.Manager, error) {
+	managerId, err := strconv.ParseInt(updatedManager.ID, 10, 64)
+
+	if err != nil {
+		return nil, newInvalidIdError(Manager, updatedManager.ID)
+	}
+
+	storeId, err := strconv.ParseInt(updatedManager.StoreID, 10, 64)
+
+	if err != nil {
+		return nil, newInvalidIdError(Store, updatedManager.StoreID)
+	}
+
+	err = p.updateManager(updatedManager, storeId, managerId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	manager := &employees.ManagerEntity{
+		Id:        managerId,
+		StoreId:   storeId,
+		FirstName: updatedManager.FirstName,
+		LastName:  updatedManager.LastName,
+	}
+
+	return manager.ToDTO(), nil
+}
+
+func (p *EmployeeProvider) updateManager(updatedManager model.ManagerInput, storeId int64, managerId int64) error {
+	statement, err := p.db.Prepare(
+		`UPDATE Manager
+			   SET StoreId = ?,
+			       FirstName = ?,
+			   	   LastName = ?
+			   WHERE Id = ?`)
+
+	if err != nil {
+		log.Println(err)
+		return serverError
+	}
+
+	defer statement.Close()
+
+	_, err = statement.Exec(storeId, updatedManager.FirstName, updatedManager.LastName, managerId)
+
+	if err != nil {
+		log.Println(err)
+		return serverError
+	}
+	return nil
+}
+
 func NewEmployeeProvider(db *sql.DB) *EmployeeProvider {
 	return &EmployeeProvider{db: db}
 }

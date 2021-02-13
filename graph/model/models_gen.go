@@ -69,7 +69,6 @@ type Manager struct {
 	StoreID   string `json:"storeId"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
-	Password  string `json:"password"`
 }
 
 func (Manager) IsEmployee() {}
@@ -156,7 +155,6 @@ type SalesAssociate struct {
 	StoreID   string `json:"storeId"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
-	Password  string `json:"password"`
 }
 
 func (SalesAssociate) IsEmployee() {}
