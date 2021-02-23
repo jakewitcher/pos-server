@@ -12,6 +12,26 @@ import (
 	"github.com/jakewitcher/pos-server/internal/datastore"
 )
 
+func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUserInput) (*model.User, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UserInput) (*model.User, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) DeleteUser(ctx context.Context, input string) (*model.User, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *mutationResolver) CreateCustomer(ctx context.Context, input model.NewCustomerInput) (*model.Customer, error) {
 	return datastore.Customers.CreateCustomer(input)
 }
@@ -36,28 +56,16 @@ func (r *mutationResolver) DeleteStore(ctx context.Context, input string) (*mode
 	return datastore.Stores.DeleteStore(input)
 }
 
-func (r *mutationResolver) CreateManager(ctx context.Context, input model.NewManagerInput) (*model.Manager, error) {
-	return datastore.Employees.CreateManager(input)
+func (r *mutationResolver) CreateEmployee(ctx context.Context, input model.NewEmployeeInput) (*model.Employee, error) {
+	return datastore.Employees.CreateEmployee(input)
 }
 
-func (r *mutationResolver) UpdateManager(ctx context.Context, input model.ManagerInput) (*model.Manager, error) {
-	return datastore.Employees.UpdateManager(input)
+func (r *mutationResolver) UpdateEmployee(ctx context.Context, input model.EmployeeInput) (*model.Employee, error) {
+	return datastore.Employees.UpdateEmployee(input)
 }
 
-func (r *mutationResolver) DeleteManager(ctx context.Context, input string) (*model.Manager, error) {
-	return datastore.Employees.DeleteManager(input)
-}
-
-func (r *mutationResolver) CreateSalesAssociate(ctx context.Context, input model.NewSalesAssociateInput) (*model.SalesAssociate, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *mutationResolver) UpdateSalesAssociate(ctx context.Context, input model.SalesAssociateInput) (*model.SalesAssociate, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *mutationResolver) DeleteSalesAssociate(ctx context.Context, input string) (*model.SalesAssociate, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *mutationResolver) DeleteEmployee(ctx context.Context, input string) (*model.Employee, error) {
+	return datastore.Employees.DeleteEmployee(input)
 }
 
 func (r *mutationResolver) CreateOrder(ctx context.Context, input model.NewOrderInput) (*model.Order, error) {
@@ -112,28 +120,12 @@ func (r *queryResolver) Stores(ctx context.Context, input *model.StoreFilter) ([
 	return datastore.Stores.FindStores(input)
 }
 
-func (r *queryResolver) Manager(ctx context.Context, input string) (*model.Manager, error) {
-	return datastore.Employees.FindManagerById(input)
+func (r *queryResolver) Employee(ctx context.Context, input string) (*model.Employee, error) {
+	return datastore.Employees.FindEmployeeById(input)
 }
 
-func (r *queryResolver) Managers(ctx context.Context) ([]*model.Manager, error) {
-	return datastore.Employees.FindManagers()
-}
-
-func (r *queryResolver) SalesAssociate(ctx context.Context, input string) (*model.SalesAssociate, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) SalesAssociates(ctx context.Context) ([]*model.SalesAssociate, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) Employee(ctx context.Context, input string) (model.Employee, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) Employees(ctx context.Context) ([]model.Employee, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) Employees(ctx context.Context) ([]*model.Employee, error) {
+	return datastore.Employees.FindEmployees()
 }
 
 func (r *queryResolver) Order(ctx context.Context, input string) (*model.Order, error) {

@@ -24,6 +24,7 @@ func init() {
 	datastore.Customers = sqlite.NewCustomerProvider(Db)
 	datastore.Stores = sqlite.NewStoreProvider(Db)
 	datastore.Employees = sqlite.NewEmployeeProvider(Db)
+	datastore.Users = sqlite.NewUserProvider(Db)
 }
 
 func main() {

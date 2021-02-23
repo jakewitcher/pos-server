@@ -12,28 +12,28 @@ type EmployeeProvider struct {
 	db *sql.DB
 }
 
-func (p *EmployeeProvider) CreateManager(newManager model.NewManagerInput) (*model.Manager, error) {
-	storeId, err := strconv.ParseInt(newManager.StoreID, 10, 64)
+func (p *EmployeeProvider) CreateEmployee(newEmployee model.NewEmployeeInput) (*model.Employee, error) {
+	storeId, err := strconv.ParseInt(newEmployee.StoreID, 10, 64)
 
 	if err != nil {
-		return nil, newInvalidIdError(Store, newManager.StoreID)
+		return nil, newInvalidIdError(Store, newEmployee.StoreID)
 	}
 
-	managerId, err := p.insertNewManager(newManager, storeId)
+	employeeId, err := p.insertNewEmployee(newEmployee, storeId)
 
-	manager := &employees.ManagerEntity{
-		Id:        managerId,
+	employee := &employees.EmployeeEntity{
+		Id:        employeeId,
 		StoreId:   storeId,
-		FirstName: newManager.FirstName,
-		LastName:  newManager.LastName,
+		FirstName: newEmployee.FirstName,
+		LastName:  newEmployee.LastName,
 	}
 
-	return manager.ToDTO(), nil
+	return employee.ToDTO(), nil
 }
 
-func (p *EmployeeProvider) insertNewManager(newManager model.NewManagerInput, storeId int64) (int64, error) {
+func (p *EmployeeProvider) insertNewEmployee(newEmployee model.NewEmployeeInput, storeId int64) (int64, error) {
 	statement, err := p.db.Prepare(
-		`INSERT INTO Manager(StoreId, FirstName, LastName, Password)
+		`INSERT INTO Employee(StoreId, FirstName, LastName, Role)
 			   VALUES (?,?,?,?)`)
 
 	if err != nil {
@@ -43,55 +43,55 @@ func (p *EmployeeProvider) insertNewManager(newManager model.NewManagerInput, st
 
 	defer statement.Close()
 
-	result, err := statement.Exec(storeId, newManager.FirstName, newManager.LastName, newManager.Password)
+	result, err := statement.Exec(storeId, newEmployee.FirstName, newEmployee.LastName, newEmployee.Role)
 
 	if err != nil {
 		log.Println(err)
 		return 0, serverError
 	}
 
-	managerId, err := result.LastInsertId()
+	employeeId, err := result.LastInsertId()
 
 	if err != nil {
 		log.Println(err)
 		return 0, serverError
 	}
 
-	return managerId, nil
+	return employeeId, nil
 }
 
-func (p *EmployeeProvider) UpdateManager(updatedManager model.ManagerInput) (*model.Manager, error) {
-	managerId, err := strconv.ParseInt(updatedManager.ID, 10, 64)
+func (p *EmployeeProvider) UpdateEmployee(updatedEmployee model.EmployeeInput) (*model.Employee, error) {
+	employeeId, err := strconv.ParseInt(updatedEmployee.ID, 10, 64)
 
 	if err != nil {
-		return nil, newInvalidIdError(Manager, updatedManager.ID)
+		return nil, newInvalidIdError(Employee, updatedEmployee.ID)
 	}
 
-	storeId, err := strconv.ParseInt(updatedManager.StoreID, 10, 64)
+	storeId, err := strconv.ParseInt(updatedEmployee.StoreID, 10, 64)
 
 	if err != nil {
-		return nil, newInvalidIdError(Store, updatedManager.StoreID)
+		return nil, newInvalidIdError(Store, updatedEmployee.StoreID)
 	}
 
-	err = p.updateManager(updatedManager, storeId, managerId)
+	err = p.updateEmployee(updatedEmployee, storeId, employeeId)
 
 	if err != nil {
 		return nil, err
 	}
 
-	manager := &employees.ManagerEntity{
-		Id:        managerId,
+	employee := &employees.EmployeeEntity{
+		Id:        employeeId,
 		StoreId:   storeId,
-		FirstName: updatedManager.FirstName,
-		LastName:  updatedManager.LastName,
+		FirstName: updatedEmployee.FirstName,
+		LastName:  updatedEmployee.LastName,
 	}
 
-	return manager.ToDTO(), nil
+	return employee.ToDTO(), nil
 }
 
-func (p *EmployeeProvider) updateManager(updatedManager model.ManagerInput, storeId int64, managerId int64) error {
+func (p *EmployeeProvider) updateEmployee(updatedEmployee model.EmployeeInput, storeId int64, employeeId int64) error {
 	statement, err := p.db.Prepare(
-		`UPDATE Manager
+		`UPDATE Employee
 			   SET StoreId = ?,
 			       FirstName = ?,
 			   	   LastName = ?
@@ -104,7 +104,7 @@ func (p *EmployeeProvider) updateManager(updatedManager model.ManagerInput, stor
 
 	defer statement.Close()
 
-	_, err = statement.Exec(storeId, updatedManager.FirstName, updatedManager.LastName, managerId)
+	_, err = statement.Exec(storeId, updatedEmployee.FirstName, updatedEmployee.LastName, employeeId)
 
 	if err != nil {
 		log.Println(err)
@@ -113,31 +113,31 @@ func (p *EmployeeProvider) updateManager(updatedManager model.ManagerInput, stor
 	return nil
 }
 
-func (p *EmployeeProvider) DeleteManager(managerId string) (*model.Manager, error) {
-	id, err := strconv.ParseInt(managerId, 10, 64)
+func (p *EmployeeProvider) DeleteEmployee(employeeId string) (*model.Employee, error) {
+	id, err := strconv.ParseInt(employeeId, 10, 64)
 
 	if err != nil {
-		return nil, newInvalidIdError(Manager, managerId)
+		return nil, newInvalidIdError(Employee, employeeId)
 	}
 
-	manager, err := p.findManagerById(id)
-
-	if err != nil {
-		return nil, err
-	}
-
-	err = p.deleteManager(id)
+	employee, err := p.findEmployeeById(id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return manager.ToDTO(), nil
+	err = p.deleteEmployee(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return employee.ToDTO(), nil
 }
 
-func (p *EmployeeProvider) deleteManager(id int64) error {
+func (p *EmployeeProvider) deleteEmployee(id int64) error {
 	statement, err := p.db.Prepare(
-		`DELETE FROM Manager 
+		`DELETE FROM Employee 
 			   WHERE Id = ?`)
 
 	if err != nil {
@@ -155,26 +155,26 @@ func (p *EmployeeProvider) deleteManager(id int64) error {
 	return nil
 }
 
-func (p *EmployeeProvider) FindManagerById(managerId string) (*model.Manager, error) {
-	id, err := strconv.ParseInt(managerId, 10, 64)
+func (p *EmployeeProvider) FindEmployeeById(employeeId string) (*model.Employee, error) {
+	id, err := strconv.ParseInt(employeeId, 10, 64)
 
 	if err != nil {
-		return nil, newInvalidIdError(Manager, managerId)
+		return nil, newInvalidIdError(Employee, employeeId)
 	}
 
-	manager, err := p.findManagerById(id)
+	employee, err := p.findEmployeeById(id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return manager.ToDTO(), nil
+	return employee.ToDTO(), nil
 }
 
-func (p *EmployeeProvider) FindManagers() ([]*model.Manager, error) {
+func (p *EmployeeProvider) FindEmployees() ([]*model.Employee, error) {
 	statement, err := p.db.Prepare(
 		`SELECT Id, StoreId, FirstName, LastName 
-			   FROM Manager`)
+			   FROM Employee`)
 
 	if err != nil {
 		log.Println(err)
@@ -192,33 +192,33 @@ func (p *EmployeeProvider) FindManagers() ([]*model.Manager, error) {
 
 	defer rows.Close()
 
-	managerModels := make([]*model.Manager, 0)
+	employeeModels := make([]*model.Employee, 0)
 
 	for rows.Next() {
-		manager := &employees.ManagerEntity{}
+		employee := &employees.EmployeeEntity{}
 
 		err := rows.Scan(
-			&manager.Id,
-			&manager.StoreId,
-			&manager.FirstName,
-			&manager.LastName)
+			&employee.Id,
+			&employee.StoreId,
+			&employee.FirstName,
+			&employee.LastName)
 
 		if err != nil {
 			log.Println(err)
 			return nil, serverError
 		}
 
-		managerModel := manager.ToDTO()
-		managerModels = append(managerModels, managerModel)
+		employeeModel := employee.ToDTO()
+		employeeModels = append(employeeModels, employeeModel)
 	}
 
-	return managerModels, nil
+	return employeeModels, nil
 }
 
-func (p *EmployeeProvider) findManagerById(managerId int64) (*employees.ManagerEntity, error) {
+func (p *EmployeeProvider) findEmployeeById(employeeId int64) (*employees.EmployeeEntity, error) {
 	statement, err := p.db.Prepare(
 		`SELECT Id, StoreId, FirstName, LastName
-			   FROM Manager
+			   FROM Employee
 			   WHERE Id = ?`)
 
 	if err != nil {
@@ -226,18 +226,18 @@ func (p *EmployeeProvider) findManagerById(managerId int64) (*employees.ManagerE
 		return nil, serverError
 	}
 
-	row := statement.QueryRow(managerId)
+	row := statement.QueryRow(employeeId)
 
-	manager := &employees.ManagerEntity{}
+	employee := &employees.EmployeeEntity{}
 
 	err = row.Scan(
-		&manager.Id,
-		&manager.StoreId,
-		&manager.FirstName,
-		&manager.LastName)
+		&employee.Id,
+		&employee.StoreId,
+		&employee.FirstName,
+		&employee.LastName)
 
 	if err == sql.ErrNoRows {
-		return nil, newNotFoundError(Manager, managerId)
+		return nil, newNotFoundError(Employee, employeeId)
 	}
 
 	if err != nil {
@@ -245,7 +245,7 @@ func (p *EmployeeProvider) findManagerById(managerId int64) (*employees.ManagerE
 		return nil, serverError
 	}
 
-	return manager, nil
+	return employee, nil
 }
 
 func NewEmployeeProvider(db *sql.DB) *EmployeeProvider {

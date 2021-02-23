@@ -8,6 +8,7 @@ var (
 	Customers CustomerProvider
 	Stores    StoreProvider
 	Employees EmployeeProvider
+	Users     UserProvider
 )
 
 type CustomerProvider interface {
@@ -27,9 +28,12 @@ type StoreProvider interface {
 }
 
 type EmployeeProvider interface {
-	CreateManager(newManager model.NewManagerInput) (*model.Manager, error)
-	UpdateManager(updatedManager model.ManagerInput) (*model.Manager, error)
-	DeleteManager(managerId string) (*model.Manager, error)
-	FindManagerById(managerId string) (*model.Manager, error)
-	FindManagers() ([]*model.Manager, error)
+	CreateEmployee(newEmployee model.NewEmployeeInput) (*model.Employee, error)
+	UpdateEmployee(updatedEmployee model.EmployeeInput) (*model.Employee, error)
+	DeleteEmployee(employeeId string) (*model.Employee, error)
+	FindEmployeeById(employeeId string) (*model.Employee, error)
+	FindEmployees() ([]*model.Employee, error)
+}
+
+type UserProvider interface {
 }

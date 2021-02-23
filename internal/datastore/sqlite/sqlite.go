@@ -3,10 +3,9 @@ package sqlite
 import "fmt"
 
 const (
-	Customer       = "Customer"
-	Store          = "Store"
-	Manager        = "Manager"
-	SalesAssociate = "SalesAssociate"
+	Customer = "Customer"
+	Store    = "Store"
+	Employee = "Employee"
 )
 
 var (

@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -56,6 +55,14 @@ type ComplexityRoot struct {
 		LastName    func(childComplexity int) int
 	}
 
+	Employee struct {
+		FirstName func(childComplexity int) int
+		ID        func(childComplexity int) int
+		LastName  func(childComplexity int) int
+		Role      func(childComplexity int) int
+		StoreID   func(childComplexity int) int
+	}
+
 	InventoryItem struct {
 		Cost         func(childComplexity int) int
 		Description  func(childComplexity int) int
@@ -70,40 +77,35 @@ type ComplexityRoot struct {
 		Retail      func(childComplexity int) int
 	}
 
-	Manager struct {
-		FirstName func(childComplexity int) int
-		ID        func(childComplexity int) int
-		LastName  func(childComplexity int) int
-		StoreID   func(childComplexity int) int
-	}
-
 	Manufacturer struct {
 		ID   func(childComplexity int) int
 		Name func(childComplexity int) int
 	}
 
 	Mutation struct {
-		CreateCustomer       func(childComplexity int, input model.NewCustomerInput) int
-		CreateInventoryItem  func(childComplexity int, input model.NewInventoryItemInput) int
-		CreateManager        func(childComplexity int, input model.NewManagerInput) int
-		CreateManufacturer   func(childComplexity int, input model.NewManufacturerInput) int
-		CreateOrder          func(childComplexity int, input model.NewOrderInput) int
-		CreateSalesAssociate func(childComplexity int, input model.NewSalesAssociateInput) int
-		CreateStore          func(childComplexity int, input model.NewStoreInput) int
-		DeleteCustomer       func(childComplexity int, input string) int
-		DeleteInventoryItem  func(childComplexity int, input string) int
-		DeleteManager        func(childComplexity int, input string) int
-		DeleteManufacturer   func(childComplexity int, input string) int
-		DeleteOrder          func(childComplexity int, input string) int
-		DeleteSalesAssociate func(childComplexity int, input string) int
-		DeleteStore          func(childComplexity int, input string) int
-		UpdateCustomer       func(childComplexity int, input model.CustomerInput) int
-		UpdateInventoryItem  func(childComplexity int, input model.InventoryItemInput) int
-		UpdateManager        func(childComplexity int, input model.ManagerInput) int
-		UpdateManufacturer   func(childComplexity int, input model.ManufacturerInput) int
-		UpdateOrder          func(childComplexity int, input model.OrderInput) int
-		UpdateSalesAssociate func(childComplexity int, input model.SalesAssociateInput) int
-		UpdateStore          func(childComplexity int, input model.StoreInput) int
+		CreateCustomer      func(childComplexity int, input model.NewCustomerInput) int
+		CreateEmployee      func(childComplexity int, input model.NewEmployeeInput) int
+		CreateInventoryItem func(childComplexity int, input model.NewInventoryItemInput) int
+		CreateManufacturer  func(childComplexity int, input model.NewManufacturerInput) int
+		CreateOrder         func(childComplexity int, input model.NewOrderInput) int
+		CreateStore         func(childComplexity int, input model.NewStoreInput) int
+		CreateUser          func(childComplexity int, input model.NewUserInput) int
+		DeleteCustomer      func(childComplexity int, input string) int
+		DeleteEmployee      func(childComplexity int, input string) int
+		DeleteInventoryItem func(childComplexity int, input string) int
+		DeleteManufacturer  func(childComplexity int, input string) int
+		DeleteOrder         func(childComplexity int, input string) int
+		DeleteStore         func(childComplexity int, input string) int
+		DeleteUser          func(childComplexity int, input string) int
+		Login               func(childComplexity int, input model.LoginInput) int
+		RefreshToken        func(childComplexity int, input model.RefreshTokenInput) int
+		UpdateCustomer      func(childComplexity int, input model.CustomerInput) int
+		UpdateEmployee      func(childComplexity int, input model.EmployeeInput) int
+		UpdateInventoryItem func(childComplexity int, input model.InventoryItemInput) int
+		UpdateManufacturer  func(childComplexity int, input model.ManufacturerInput) int
+		UpdateOrder         func(childComplexity int, input model.OrderInput) int
+		UpdateStore         func(childComplexity int, input model.StoreInput) int
+		UpdateUser          func(childComplexity int, input model.UserInput) int
 	}
 
 	Order struct {
@@ -115,25 +117,14 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Customer        func(childComplexity int, input string) int
-		Customers       func(childComplexity int, input *model.CustomerFilter) int
-		Employee        func(childComplexity int, input string) int
-		Employees       func(childComplexity int) int
-		Manager         func(childComplexity int, input string) int
-		Managers        func(childComplexity int) int
-		Order           func(childComplexity int, input string) int
-		Orders          func(childComplexity int) int
-		SalesAssociate  func(childComplexity int, input string) int
-		SalesAssociates func(childComplexity int) int
-		Store           func(childComplexity int, input string) int
-		Stores          func(childComplexity int, input *model.StoreFilter) int
-	}
-
-	SalesAssociate struct {
-		FirstName func(childComplexity int) int
-		ID        func(childComplexity int) int
-		LastName  func(childComplexity int) int
-		StoreID   func(childComplexity int) int
+		Customer  func(childComplexity int, input string) int
+		Customers func(childComplexity int, input *model.CustomerFilter) int
+		Employee  func(childComplexity int, input string) int
+		Employees func(childComplexity int) int
+		Order     func(childComplexity int, input string) int
+		Orders    func(childComplexity int) int
+		Store     func(childComplexity int, input string) int
+		Stores    func(childComplexity int, input *model.StoreFilter) int
 	}
 
 	Store struct {
@@ -148,21 +139,29 @@ type ComplexityRoot struct {
 		Street  func(childComplexity int) int
 		ZipCode func(childComplexity int) int
 	}
+
+	User struct {
+		EmployeeID func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Username   func(childComplexity int) int
+	}
 }
 
 type MutationResolver interface {
+	CreateUser(ctx context.Context, input model.NewUserInput) (*model.User, error)
+	UpdateUser(ctx context.Context, input model.UserInput) (*model.User, error)
+	DeleteUser(ctx context.Context, input string) (*model.User, error)
+	Login(ctx context.Context, input model.LoginInput) (string, error)
+	RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error)
 	CreateCustomer(ctx context.Context, input model.NewCustomerInput) (*model.Customer, error)
 	UpdateCustomer(ctx context.Context, input model.CustomerInput) (*model.Customer, error)
 	DeleteCustomer(ctx context.Context, input string) (*model.Customer, error)
 	CreateStore(ctx context.Context, input model.NewStoreInput) (*model.Store, error)
 	UpdateStore(ctx context.Context, input model.StoreInput) (*model.Store, error)
 	DeleteStore(ctx context.Context, input string) (*model.Store, error)
-	CreateManager(ctx context.Context, input model.NewManagerInput) (*model.Manager, error)
-	UpdateManager(ctx context.Context, input model.ManagerInput) (*model.Manager, error)
-	DeleteManager(ctx context.Context, input string) (*model.Manager, error)
-	CreateSalesAssociate(ctx context.Context, input model.NewSalesAssociateInput) (*model.SalesAssociate, error)
-	UpdateSalesAssociate(ctx context.Context, input model.SalesAssociateInput) (*model.SalesAssociate, error)
-	DeleteSalesAssociate(ctx context.Context, input string) (*model.SalesAssociate, error)
+	CreateEmployee(ctx context.Context, input model.NewEmployeeInput) (*model.Employee, error)
+	UpdateEmployee(ctx context.Context, input model.EmployeeInput) (*model.Employee, error)
+	DeleteEmployee(ctx context.Context, input string) (*model.Employee, error)
 	CreateOrder(ctx context.Context, input model.NewOrderInput) (*model.Order, error)
 	UpdateOrder(ctx context.Context, input model.OrderInput) (*model.Order, error)
 	DeleteOrder(ctx context.Context, input string) (*model.Order, error)
@@ -178,12 +177,8 @@ type QueryResolver interface {
 	Customers(ctx context.Context, input *model.CustomerFilter) ([]*model.Customer, error)
 	Store(ctx context.Context, input string) (*model.Store, error)
 	Stores(ctx context.Context, input *model.StoreFilter) ([]*model.Store, error)
-	Manager(ctx context.Context, input string) (*model.Manager, error)
-	Managers(ctx context.Context) ([]*model.Manager, error)
-	SalesAssociate(ctx context.Context, input string) (*model.SalesAssociate, error)
-	SalesAssociates(ctx context.Context) ([]*model.SalesAssociate, error)
-	Employee(ctx context.Context, input string) (model.Employee, error)
-	Employees(ctx context.Context) ([]model.Employee, error)
+	Employee(ctx context.Context, input string) (*model.Employee, error)
+	Employees(ctx context.Context) ([]*model.Employee, error)
 	Order(ctx context.Context, input string) (*model.Order, error)
 	Orders(ctx context.Context) ([]*model.Order, error)
 }
@@ -245,6 +240,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Customer.LastName(childComplexity), true
 
+	case "Employee.firstName":
+		if e.complexity.Employee.FirstName == nil {
+			break
+		}
+
+		return e.complexity.Employee.FirstName(childComplexity), true
+
+	case "Employee.id":
+		if e.complexity.Employee.ID == nil {
+			break
+		}
+
+		return e.complexity.Employee.ID(childComplexity), true
+
+	case "Employee.lastName":
+		if e.complexity.Employee.LastName == nil {
+			break
+		}
+
+		return e.complexity.Employee.LastName(childComplexity), true
+
+	case "Employee.role":
+		if e.complexity.Employee.Role == nil {
+			break
+		}
+
+		return e.complexity.Employee.Role(childComplexity), true
+
+	case "Employee.storeId":
+		if e.complexity.Employee.StoreID == nil {
+			break
+		}
+
+		return e.complexity.Employee.StoreID(childComplexity), true
+
 	case "InventoryItem.cost":
 		if e.complexity.InventoryItem.Cost == nil {
 			break
@@ -301,34 +331,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LineItem.Retail(childComplexity), true
 
-	case "Manager.firstName":
-		if e.complexity.Manager.FirstName == nil {
-			break
-		}
-
-		return e.complexity.Manager.FirstName(childComplexity), true
-
-	case "Manager.id":
-		if e.complexity.Manager.ID == nil {
-			break
-		}
-
-		return e.complexity.Manager.ID(childComplexity), true
-
-	case "Manager.lastName":
-		if e.complexity.Manager.LastName == nil {
-			break
-		}
-
-		return e.complexity.Manager.LastName(childComplexity), true
-
-	case "Manager.storeId":
-		if e.complexity.Manager.StoreID == nil {
-			break
-		}
-
-		return e.complexity.Manager.StoreID(childComplexity), true
-
 	case "Manufacturer.id":
 		if e.complexity.Manufacturer.ID == nil {
 			break
@@ -355,6 +357,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateCustomer(childComplexity, args["input"].(model.NewCustomerInput)), true
 
+	case "Mutation.createEmployee":
+		if e.complexity.Mutation.CreateEmployee == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createEmployee_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateEmployee(childComplexity, args["input"].(model.NewEmployeeInput)), true
+
 	case "Mutation.createInventoryItem":
 		if e.complexity.Mutation.CreateInventoryItem == nil {
 			break
@@ -366,18 +380,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateInventoryItem(childComplexity, args["input"].(model.NewInventoryItemInput)), true
-
-	case "Mutation.createManager":
-		if e.complexity.Mutation.CreateManager == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createManager_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateManager(childComplexity, args["input"].(model.NewManagerInput)), true
 
 	case "Mutation.createManufacturer":
 		if e.complexity.Mutation.CreateManufacturer == nil {
@@ -403,18 +405,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateOrder(childComplexity, args["input"].(model.NewOrderInput)), true
 
-	case "Mutation.createSalesAssociate":
-		if e.complexity.Mutation.CreateSalesAssociate == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createSalesAssociate_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateSalesAssociate(childComplexity, args["input"].(model.NewSalesAssociateInput)), true
-
 	case "Mutation.createStore":
 		if e.complexity.Mutation.CreateStore == nil {
 			break
@@ -426,6 +416,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateStore(childComplexity, args["input"].(model.NewStoreInput)), true
+
+	case "Mutation.createUser":
+		if e.complexity.Mutation.CreateUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(model.NewUserInput)), true
 
 	case "Mutation.deleteCustomer":
 		if e.complexity.Mutation.DeleteCustomer == nil {
@@ -439,6 +441,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteCustomer(childComplexity, args["input"].(string)), true
 
+	case "Mutation.deleteEmployee":
+		if e.complexity.Mutation.DeleteEmployee == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteEmployee_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteEmployee(childComplexity, args["input"].(string)), true
+
 	case "Mutation.deleteInventoryItem":
 		if e.complexity.Mutation.DeleteInventoryItem == nil {
 			break
@@ -450,18 +464,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteInventoryItem(childComplexity, args["input"].(string)), true
-
-	case "Mutation.deleteManager":
-		if e.complexity.Mutation.DeleteManager == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_deleteManager_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DeleteManager(childComplexity, args["input"].(string)), true
 
 	case "Mutation.deleteManufacturer":
 		if e.complexity.Mutation.DeleteManufacturer == nil {
@@ -487,18 +489,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteOrder(childComplexity, args["input"].(string)), true
 
-	case "Mutation.deleteSalesAssociate":
-		if e.complexity.Mutation.DeleteSalesAssociate == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_deleteSalesAssociate_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DeleteSalesAssociate(childComplexity, args["input"].(string)), true
-
 	case "Mutation.deleteStore":
 		if e.complexity.Mutation.DeleteStore == nil {
 			break
@@ -510,6 +500,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteStore(childComplexity, args["input"].(string)), true
+
+	case "Mutation.deleteUser":
+		if e.complexity.Mutation.DeleteUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteUser(childComplexity, args["input"].(string)), true
+
+	case "Mutation.login":
+		if e.complexity.Mutation.Login == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_login_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Login(childComplexity, args["input"].(model.LoginInput)), true
+
+	case "Mutation.refreshToken":
+		if e.complexity.Mutation.RefreshToken == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_refreshToken_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RefreshToken(childComplexity, args["input"].(model.RefreshTokenInput)), true
 
 	case "Mutation.updateCustomer":
 		if e.complexity.Mutation.UpdateCustomer == nil {
@@ -523,6 +549,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateCustomer(childComplexity, args["input"].(model.CustomerInput)), true
 
+	case "Mutation.updateEmployee":
+		if e.complexity.Mutation.UpdateEmployee == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateEmployee_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateEmployee(childComplexity, args["input"].(model.EmployeeInput)), true
+
 	case "Mutation.updateInventoryItem":
 		if e.complexity.Mutation.UpdateInventoryItem == nil {
 			break
@@ -534,18 +572,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateInventoryItem(childComplexity, args["input"].(model.InventoryItemInput)), true
-
-	case "Mutation.updateManager":
-		if e.complexity.Mutation.UpdateManager == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateManager_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateManager(childComplexity, args["input"].(model.ManagerInput)), true
 
 	case "Mutation.updateManufacturer":
 		if e.complexity.Mutation.UpdateManufacturer == nil {
@@ -571,18 +597,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateOrder(childComplexity, args["input"].(model.OrderInput)), true
 
-	case "Mutation.updateSalesAssociate":
-		if e.complexity.Mutation.UpdateSalesAssociate == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateSalesAssociate_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateSalesAssociate(childComplexity, args["input"].(model.SalesAssociateInput)), true
-
 	case "Mutation.updateStore":
 		if e.complexity.Mutation.UpdateStore == nil {
 			break
@@ -594,6 +608,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateStore(childComplexity, args["input"].(model.StoreInput)), true
+
+	case "Mutation.updateUser":
+		if e.complexity.Mutation.UpdateUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateUser(childComplexity, args["input"].(model.UserInput)), true
 
 	case "Order.customer":
 		if e.complexity.Order.Customer == nil {
@@ -673,25 +699,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Employees(childComplexity), true
 
-	case "Query.manager":
-		if e.complexity.Query.Manager == nil {
-			break
-		}
-
-		args, err := ec.field_Query_manager_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Manager(childComplexity, args["input"].(string)), true
-
-	case "Query.managers":
-		if e.complexity.Query.Managers == nil {
-			break
-		}
-
-		return e.complexity.Query.Managers(childComplexity), true
-
 	case "Query.order":
 		if e.complexity.Query.Order == nil {
 			break
@@ -710,25 +717,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Orders(childComplexity), true
-
-	case "Query.salesAssociate":
-		if e.complexity.Query.SalesAssociate == nil {
-			break
-		}
-
-		args, err := ec.field_Query_salesAssociate_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.SalesAssociate(childComplexity, args["input"].(string)), true
-
-	case "Query.salesAssociates":
-		if e.complexity.Query.SalesAssociates == nil {
-			break
-		}
-
-		return e.complexity.Query.SalesAssociates(childComplexity), true
 
 	case "Query.store":
 		if e.complexity.Query.Store == nil {
@@ -753,34 +741,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Stores(childComplexity, args["input"].(*model.StoreFilter)), true
-
-	case "SalesAssociate.firstName":
-		if e.complexity.SalesAssociate.FirstName == nil {
-			break
-		}
-
-		return e.complexity.SalesAssociate.FirstName(childComplexity), true
-
-	case "SalesAssociate.id":
-		if e.complexity.SalesAssociate.ID == nil {
-			break
-		}
-
-		return e.complexity.SalesAssociate.ID(childComplexity), true
-
-	case "SalesAssociate.lastName":
-		if e.complexity.SalesAssociate.LastName == nil {
-			break
-		}
-
-		return e.complexity.SalesAssociate.LastName(childComplexity), true
-
-	case "SalesAssociate.storeId":
-		if e.complexity.SalesAssociate.StoreID == nil {
-			break
-		}
-
-		return e.complexity.SalesAssociate.StoreID(childComplexity), true
 
 	case "Store.id":
 		if e.complexity.Store.ID == nil {
@@ -830,6 +790,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.StoreLocation.ZipCode(childComplexity), true
+
+	case "User.employeeId":
+		if e.complexity.User.EmployeeID == nil {
+			break
+		}
+
+		return e.complexity.User.EmployeeID(childComplexity), true
+
+	case "User.id":
+		if e.complexity.User.ID == nil {
+			break
+		}
+
+		return e.complexity.User.ID(childComplexity), true
+
+	case "User.username":
+		if e.complexity.User.Username == nil {
+			break
+		}
+
+		return e.complexity.User.Username(childComplexity), true
 
 	}
 	return 0, false
@@ -907,25 +888,23 @@ type ContactInfo {
     emailAddress: String!
 }
 
-interface Employee {
+type User {
     id: ID!
-    storeId: ID!
-    firstName: String!
-    lastName: String!
+    employeeId: ID!
+    username: String!
 }
 
-type Manager implements Employee {
-    id: ID!
-    storeId: ID!
-    firstName: String!
-    lastName: String!
+enum Roles {
+    MANAGER
+    SALES_ASSOCIATE
 }
 
-type SalesAssociate implements Employee {
+type Employee {
     id: ID!
     storeId: ID!
     firstName: String!
     lastName: String!
+    role: Roles!
 }
 
 type InventoryItem {
@@ -958,7 +937,7 @@ type Order {
     id: ID!
     storeId: ID!
     customer: Customer!
-    salesAssociate: SalesAssociate!
+    salesAssociate: Employee!
     lineItems: [LineItem!]!
 }
 
@@ -987,17 +966,34 @@ type Query {
     store(input: ID!): Store
     stores(input: StoreFilter): [Store!]!
 
-    manager(input: ID!): Manager
-    managers: [Manager!]!
-
-    salesAssociate(input: ID!): SalesAssociate
-    salesAssociates: [SalesAssociate!]!
-
     employee(input: ID!): Employee
     employees: [Employee!]!
 
     order(input: ID!): Order
     orders: [Order!]!
+}
+
+input NewUserInput {
+    employeeId: ID!
+    username: String!
+    password: String!
+}
+
+input UserInput {
+    id: ID!
+    employeeId: ID!
+    username: String!
+    currentPassword: String!
+    newPassword: String
+}
+
+input LoginInput {
+    username: String!
+    password: String!
+}
+
+input RefreshTokenInput {
+    token: String!
 }
 
 input NewCustomerInput {
@@ -1036,34 +1032,19 @@ input StoreLocationInput {
     zipCode: String!
 }
 
-input NewManagerInput {
+input NewEmployeeInput {
     storeId: ID!
     firstName: String!
     lastName: String!
-    password: String!
+    role: Roles!
 }
 
-input ManagerInput {
+input EmployeeInput {
     id: ID!
     storeId: ID!
     firstName: String!
     lastName: String!
-    password: String!
-}
-
-input NewSalesAssociateInput {
-    storeId: ID!
-    firstName: String!
-    lastName: String!
-    password: String!
-}
-
-input SalesAssociateInput {
-    id: ID!
-    storeId: ID!
-    firstName: String!
-    lastName: String!
-    password: String!
+    role: Roles!
 }
 
 input NewOrderInput {
@@ -1112,6 +1093,13 @@ input ManufacturerInput {
 }
 
 type Mutation {
+    createUser(input: NewUserInput!): User!
+    updateUser(input: UserInput!): User
+    deleteUser(input: ID!): User
+
+    login(input: LoginInput!): String!
+    refreshToken(input: RefreshTokenInput!): String!
+
     createCustomer(input: NewCustomerInput!): Customer!
     updateCustomer(input: CustomerInput!): Customer
     deleteCustomer(input: ID!): Customer
@@ -1120,13 +1108,9 @@ type Mutation {
     updateStore(input: StoreInput!): Store
     deleteStore(input: ID!): Store
 
-    createManager(input: NewManagerInput!): Manager!
-    updateManager(input: ManagerInput!): Manager
-    deleteManager(input: ID!): Manager
-
-    createSalesAssociate(input: NewSalesAssociateInput!): SalesAssociate!
-    updateSalesAssociate(input: SalesAssociateInput!): SalesAssociate
-    deleteSalesAssociate(input: ID!): SalesAssociate
+    createEmployee(input: NewEmployeeInput!): Employee!
+    updateEmployee(input: EmployeeInput!): Employee
+    deleteEmployee(input: ID!): Employee
 
     createOrder(input: NewOrderInput!): Order!
     updateOrder(input: OrderInput!): Order
@@ -1162,13 +1146,13 @@ func (ec *executionContext) field_Mutation_createCustomer_args(ctx context.Conte
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createInventoryItem_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_createEmployee_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.NewInventoryItemInput
+	var arg0 model.NewEmployeeInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewInventoryItemInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewInventoryItemInput(ctx, tmp)
+		arg0, err = ec.unmarshalNNewEmployeeInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewEmployeeInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1177,13 +1161,13 @@ func (ec *executionContext) field_Mutation_createInventoryItem_args(ctx context.
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createManager_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_createInventoryItem_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.NewManagerInput
+	var arg0 model.NewInventoryItemInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewManagerInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewManagerInput(ctx, tmp)
+		arg0, err = ec.unmarshalNNewInventoryItemInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewInventoryItemInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1222,13 +1206,13 @@ func (ec *executionContext) field_Mutation_createOrder_args(ctx context.Context,
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createSalesAssociate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_createStore_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.NewSalesAssociateInput
+	var arg0 model.NewStoreInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewSalesAssociateInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewSalesAssociateInput(ctx, tmp)
+		arg0, err = ec.unmarshalNNewStoreInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewStoreInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1237,13 +1221,13 @@ func (ec *executionContext) field_Mutation_createSalesAssociate_args(ctx context
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createStore_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.NewStoreInput
+	var arg0 model.NewUserInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewStoreInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewStoreInput(ctx, tmp)
+		arg0, err = ec.unmarshalNNewUserInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewUserInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1267,7 +1251,7 @@ func (ec *executionContext) field_Mutation_deleteCustomer_args(ctx context.Conte
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_deleteInventoryItem_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_deleteEmployee_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1282,7 +1266,7 @@ func (ec *executionContext) field_Mutation_deleteInventoryItem_args(ctx context.
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_deleteManager_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_deleteInventoryItem_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1327,7 +1311,7 @@ func (ec *executionContext) field_Mutation_deleteOrder_args(ctx context.Context,
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_deleteSalesAssociate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_deleteStore_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1342,13 +1326,43 @@ func (ec *executionContext) field_Mutation_deleteSalesAssociate_args(ctx context
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_deleteStore_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_deleteUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.LoginInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNLoginInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐLoginInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_refreshToken_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.RefreshTokenInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNRefreshTokenInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐRefreshTokenInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1372,13 +1386,13 @@ func (ec *executionContext) field_Mutation_updateCustomer_args(ctx context.Conte
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updateInventoryItem_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_updateEmployee_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.InventoryItemInput
+	var arg0 model.EmployeeInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNInventoryItemInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐInventoryItemInput(ctx, tmp)
+		arg0, err = ec.unmarshalNEmployeeInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployeeInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1387,13 +1401,13 @@ func (ec *executionContext) field_Mutation_updateInventoryItem_args(ctx context.
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updateManager_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_updateInventoryItem_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.ManagerInput
+	var arg0 model.InventoryItemInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNManagerInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManagerInput(ctx, tmp)
+		arg0, err = ec.unmarshalNInventoryItemInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐInventoryItemInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1432,13 +1446,13 @@ func (ec *executionContext) field_Mutation_updateOrder_args(ctx context.Context,
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updateSalesAssociate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_updateStore_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.SalesAssociateInput
+	var arg0 model.StoreInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNSalesAssociateInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociateInput(ctx, tmp)
+		arg0, err = ec.unmarshalNStoreInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1447,13 +1461,13 @@ func (ec *executionContext) field_Mutation_updateSalesAssociate_args(ctx context
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updateStore_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.StoreInput
+	var arg0 model.UserInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNStoreInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreInput(ctx, tmp)
+		arg0, err = ec.unmarshalNUserInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐUserInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1522,37 +1536,7 @@ func (ec *executionContext) field_Query_employee_args(ctx context.Context, rawAr
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_manager_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_order_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_salesAssociate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1845,6 +1829,181 @@ func (ec *executionContext) _Customer_contactInfo(ctx context.Context, field gra
 	return ec.marshalNContactInfo2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐContactInfo(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Employee_id(ctx context.Context, field graphql.CollectedField, obj *model.Employee) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Employee",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Employee_storeId(ctx context.Context, field graphql.CollectedField, obj *model.Employee) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Employee",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StoreID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Employee_firstName(ctx context.Context, field graphql.CollectedField, obj *model.Employee) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Employee",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FirstName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Employee_lastName(ctx context.Context, field graphql.CollectedField, obj *model.Employee) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Employee",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Employee_role(ctx context.Context, field graphql.CollectedField, obj *model.Employee) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Employee",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Role, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.Roles)
+	fc.Result = res
+	return ec.marshalNRoles2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐRoles(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _InventoryItem_id(ctx context.Context, field graphql.CollectedField, obj *model.InventoryItem) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2125,146 +2284,6 @@ func (ec *executionContext) _LineItem_quantity(ctx context.Context, field graphq
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Manager_id(ctx context.Context, field graphql.CollectedField, obj *model.Manager) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Manager",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Manager_storeId(ctx context.Context, field graphql.CollectedField, obj *model.Manager) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Manager",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.StoreID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Manager_firstName(ctx context.Context, field graphql.CollectedField, obj *model.Manager) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Manager",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FirstName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Manager_lastName(ctx context.Context, field graphql.CollectedField, obj *model.Manager) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Manager",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LastName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Manufacturer_id(ctx context.Context, field graphql.CollectedField, obj *model.Manufacturer) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2319,6 +2338,210 @@ func (ec *executionContext) _Manufacturer_name(ctx context.Context, field graphq
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createUser_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateUser(rctx, args["input"].(model.NewUserInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateUser_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateUser(rctx, args["input"].(model.UserInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteUser_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteUser(rctx, args["input"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_login(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_login_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Login(rctx, args["input"].(model.LoginInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_refreshToken_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RefreshToken(rctx, args["input"].(model.RefreshTokenInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2575,7 +2798,7 @@ func (ec *executionContext) _Mutation_deleteStore(ctx context.Context, field gra
 	return ec.marshalOStore2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStore(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_createManager(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_createEmployee(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2592,7 +2815,7 @@ func (ec *executionContext) _Mutation_createManager(ctx context.Context, field g
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createManager_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_createEmployee_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -2600,7 +2823,7 @@ func (ec *executionContext) _Mutation_createManager(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateManager(rctx, args["input"].(model.NewManagerInput))
+		return ec.resolvers.Mutation().CreateEmployee(rctx, args["input"].(model.NewEmployeeInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2612,12 +2835,12 @@ func (ec *executionContext) _Mutation_createManager(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Manager)
+	res := resTmp.(*model.Employee)
 	fc.Result = res
-	return ec.marshalNManager2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManager(ctx, field.Selections, res)
+	return ec.marshalNEmployee2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployee(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_updateManager(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_updateEmployee(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2634,7 +2857,7 @@ func (ec *executionContext) _Mutation_updateManager(ctx context.Context, field g
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateManager_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_updateEmployee_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -2642,7 +2865,7 @@ func (ec *executionContext) _Mutation_updateManager(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateManager(rctx, args["input"].(model.ManagerInput))
+		return ec.resolvers.Mutation().UpdateEmployee(rctx, args["input"].(model.EmployeeInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2651,12 +2874,12 @@ func (ec *executionContext) _Mutation_updateManager(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.Manager)
+	res := resTmp.(*model.Employee)
 	fc.Result = res
-	return ec.marshalOManager2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManager(ctx, field.Selections, res)
+	return ec.marshalOEmployee2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployee(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_deleteManager(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_deleteEmployee(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2673,7 +2896,7 @@ func (ec *executionContext) _Mutation_deleteManager(ctx context.Context, field g
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_deleteManager_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_deleteEmployee_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -2681,7 +2904,7 @@ func (ec *executionContext) _Mutation_deleteManager(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteManager(rctx, args["input"].(string))
+		return ec.resolvers.Mutation().DeleteEmployee(rctx, args["input"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2690,129 +2913,9 @@ func (ec *executionContext) _Mutation_deleteManager(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.Manager)
+	res := resTmp.(*model.Employee)
 	fc.Result = res
-	return ec.marshalOManager2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManager(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_createSalesAssociate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createSalesAssociate_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSalesAssociate(rctx, args["input"].(model.NewSalesAssociateInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.SalesAssociate)
-	fc.Result = res
-	return ec.marshalNSalesAssociate2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociate(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_updateSalesAssociate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateSalesAssociate_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateSalesAssociate(rctx, args["input"].(model.SalesAssociateInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.SalesAssociate)
-	fc.Result = res
-	return ec.marshalOSalesAssociate2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociate(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_deleteSalesAssociate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_deleteSalesAssociate_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteSalesAssociate(rctx, args["input"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.SalesAssociate)
-	fc.Result = res
-	return ec.marshalOSalesAssociate2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociate(ctx, field.Selections, res)
+	return ec.marshalOEmployee2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployee(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createOrder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3310,9 +3413,9 @@ func (ec *executionContext) _Order_salesAssociate(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.SalesAssociate)
+	res := resTmp.(*model.Employee)
 	fc.Result = res
-	return ec.marshalNSalesAssociate2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociate(ctx, field.Selections, res)
+	return ec.marshalNEmployee2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployee(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Order_lineItems(ctx context.Context, field graphql.CollectedField, obj *model.Order) (ret graphql.Marshaler) {
@@ -3512,154 +3615,6 @@ func (ec *executionContext) _Query_stores(ctx context.Context, field graphql.Col
 	return ec.marshalNStore2ᚕᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_manager(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_manager_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Manager(rctx, args["input"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Manager)
-	fc.Result = res
-	return ec.marshalOManager2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManager(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_managers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Managers(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.Manager)
-	fc.Result = res
-	return ec.marshalNManager2ᚕᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManagerᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_salesAssociate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_salesAssociate_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SalesAssociate(rctx, args["input"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.SalesAssociate)
-	fc.Result = res
-	return ec.marshalOSalesAssociate2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociate(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_salesAssociates(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SalesAssociates(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.SalesAssociate)
-	fc.Result = res
-	return ec.marshalNSalesAssociate2ᚕᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociateᚄ(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_employee(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3694,9 +3649,9 @@ func (ec *executionContext) _Query_employee(ctx context.Context, field graphql.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(model.Employee)
+	res := resTmp.(*model.Employee)
 	fc.Result = res
-	return ec.marshalOEmployee2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployee(ctx, field.Selections, res)
+	return ec.marshalOEmployee2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployee(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_employees(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3729,9 +3684,9 @@ func (ec *executionContext) _Query_employees(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.Employee)
+	res := resTmp.([]*model.Employee)
 	fc.Result = res
-	return ec.marshalNEmployee2ᚕgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployeeᚄ(ctx, field.Selections, res)
+	return ec.marshalNEmployee2ᚕᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployeeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_order(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3877,146 +3832,6 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	res := resTmp.(*introspection.Schema)
 	fc.Result = res
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SalesAssociate_id(ctx context.Context, field graphql.CollectedField, obj *model.SalesAssociate) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SalesAssociate",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SalesAssociate_storeId(ctx context.Context, field graphql.CollectedField, obj *model.SalesAssociate) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SalesAssociate",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.StoreID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SalesAssociate_firstName(ctx context.Context, field graphql.CollectedField, obj *model.SalesAssociate) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SalesAssociate",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FirstName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SalesAssociate_lastName(ctx context.Context, field graphql.CollectedField, obj *model.SalesAssociate) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SalesAssociate",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LastName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Store_id(ctx context.Context, field graphql.CollectedField, obj *model.Store) (ret graphql.Marshaler) {
@@ -4248,6 +4063,111 @@ func (ec *executionContext) _StoreLocation_zipCode(ctx context.Context, field gr
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ZipCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_employeeId(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EmployeeID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_username(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Username, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5459,6 +5379,58 @@ func (ec *executionContext) unmarshalInputCustomerInput(ctx context.Context, obj
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputEmployeeInput(ctx context.Context, obj interface{}) (model.EmployeeInput, error) {
+	var it model.EmployeeInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "storeId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("storeId"))
+			it.StoreID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "firstName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
+			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "lastName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
+			it.LastName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "role":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
+			it.Role, err = ec.unmarshalNRoles2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐRoles(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputInventoryItemInput(ctx context.Context, obj interface{}) (model.InventoryItemInput, error) {
 	var it model.InventoryItemInput
 	var asMap = obj.(map[string]interface{})
@@ -5547,41 +5519,17 @@ func (ec *executionContext) unmarshalInputLineItemInput(ctx context.Context, obj
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputManagerInput(ctx context.Context, obj interface{}) (model.ManagerInput, error) {
-	var it model.ManagerInput
+func (ec *executionContext) unmarshalInputLoginInput(ctx context.Context, obj interface{}) (model.LoginInput, error) {
+	var it model.LoginInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
 		switch k {
-		case "id":
+		case "username":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "storeId":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("storeId"))
-			it.StoreID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "firstName":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
-			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "lastName":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
-			it.LastName, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			it.Username, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5663,6 +5611,50 @@ func (ec *executionContext) unmarshalInputNewCustomerInput(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputNewEmployeeInput(ctx context.Context, obj interface{}) (model.NewEmployeeInput, error) {
+	var it model.NewEmployeeInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "storeId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("storeId"))
+			it.StoreID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "firstName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
+			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "lastName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
+			it.LastName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "role":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
+			it.Role, err = ec.unmarshalNRoles2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐRoles(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewInventoryItemInput(ctx context.Context, obj interface{}) (model.NewInventoryItemInput, error) {
 	var it model.NewInventoryItemInput
 	var asMap = obj.(map[string]interface{})
@@ -5698,50 +5690,6 @@ func (ec *executionContext) unmarshalInputNewInventoryItemInput(ctx context.Cont
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("manufacturer"))
 			it.Manufacturer, err = ec.unmarshalNManufacturerInput2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManufacturerInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputNewManagerInput(ctx context.Context, obj interface{}) (model.NewManagerInput, error) {
-	var it model.NewManagerInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "storeId":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("storeId"))
-			it.StoreID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "firstName":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
-			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "lastName":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
-			it.LastName, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "password":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
-			it.Password, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5815,50 +5763,6 @@ func (ec *executionContext) unmarshalInputNewOrderInput(ctx context.Context, obj
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputNewSalesAssociateInput(ctx context.Context, obj interface{}) (model.NewSalesAssociateInput, error) {
-	var it model.NewSalesAssociateInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "storeId":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("storeId"))
-			it.StoreID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "firstName":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
-			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "lastName":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
-			it.LastName, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "password":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
-			it.Password, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputNewStoreInput(ctx context.Context, obj interface{}) (model.NewStoreInput, error) {
 	var it model.NewStoreInput
 	var asMap = obj.(map[string]interface{})
@@ -5878,6 +5782,42 @@ func (ec *executionContext) unmarshalInputNewStoreInput(ctx context.Context, obj
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location"))
 			it.Location, err = ec.unmarshalNStoreLocationInput2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStoreLocationInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewUserInput(ctx context.Context, obj interface{}) (model.NewUserInput, error) {
+	var it model.NewUserInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "employeeId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("employeeId"))
+			it.EmployeeID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "username":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			it.Username, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "password":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			it.Password, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5939,49 +5879,17 @@ func (ec *executionContext) unmarshalInputOrderInput(ctx context.Context, obj in
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputSalesAssociateInput(ctx context.Context, obj interface{}) (model.SalesAssociateInput, error) {
-	var it model.SalesAssociateInput
+func (ec *executionContext) unmarshalInputRefreshTokenInput(ctx context.Context, obj interface{}) (model.RefreshTokenInput, error) {
+	var it model.RefreshTokenInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
 		switch k {
-		case "id":
+		case "token":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "storeId":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("storeId"))
-			it.StoreID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "firstName":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
-			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "lastName":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
-			it.LastName, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "password":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
-			it.Password, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
+			it.Token, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6107,32 +6015,61 @@ func (ec *executionContext) unmarshalInputStoreLocationInput(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj interface{}) (model.UserInput, error) {
+	var it model.UserInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "employeeId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("employeeId"))
+			it.EmployeeID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "username":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			it.Username, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "currentPassword":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("currentPassword"))
+			it.CurrentPassword, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "newPassword":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newPassword"))
+			it.NewPassword, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
-
-func (ec *executionContext) _Employee(ctx context.Context, sel ast.SelectionSet, obj model.Employee) graphql.Marshaler {
-	switch obj := (obj).(type) {
-	case nil:
-		return graphql.Null
-	case model.Manager:
-		return ec._Manager(ctx, sel, &obj)
-	case *model.Manager:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._Manager(ctx, sel, obj)
-	case model.SalesAssociate:
-		return ec._SalesAssociate(ctx, sel, &obj)
-	case *model.SalesAssociate:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._SalesAssociate(ctx, sel, obj)
-	default:
-		panic(fmt.Errorf("unexpected type %T", obj))
-	}
-}
 
 // endregion ************************** interface.gotpl ***************************
 
@@ -6198,6 +6135,53 @@ func (ec *executionContext) _Customer(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "contactInfo":
 			out.Values[i] = ec._Customer_contactInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var employeeImplementors = []string{"Employee"}
+
+func (ec *executionContext) _Employee(ctx context.Context, sel ast.SelectionSet, obj *model.Employee) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, employeeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Employee")
+		case "id":
+			out.Values[i] = ec._Employee_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "storeId":
+			out.Values[i] = ec._Employee_storeId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "firstName":
+			out.Values[i] = ec._Employee_firstName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "lastName":
+			out.Values[i] = ec._Employee_lastName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "role":
+			out.Values[i] = ec._Employee_role(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -6296,48 +6280,6 @@ func (ec *executionContext) _LineItem(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
-var managerImplementors = []string{"Manager", "Employee"}
-
-func (ec *executionContext) _Manager(ctx context.Context, sel ast.SelectionSet, obj *model.Manager) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, managerImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Manager")
-		case "id":
-			out.Values[i] = ec._Manager_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "storeId":
-			out.Values[i] = ec._Manager_storeId(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "firstName":
-			out.Values[i] = ec._Manager_firstName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "lastName":
-			out.Values[i] = ec._Manager_lastName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var manufacturerImplementors = []string{"Manufacturer"}
 
 func (ec *executionContext) _Manufacturer(ctx context.Context, sel ast.SelectionSet, obj *model.Manufacturer) graphql.Marshaler {
@@ -6385,6 +6327,25 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "createUser":
+			out.Values[i] = ec._Mutation_createUser(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateUser":
+			out.Values[i] = ec._Mutation_updateUser(ctx, field)
+		case "deleteUser":
+			out.Values[i] = ec._Mutation_deleteUser(ctx, field)
+		case "login":
+			out.Values[i] = ec._Mutation_login(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "refreshToken":
+			out.Values[i] = ec._Mutation_refreshToken(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createCustomer":
 			out.Values[i] = ec._Mutation_createCustomer(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -6403,24 +6364,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_updateStore(ctx, field)
 		case "deleteStore":
 			out.Values[i] = ec._Mutation_deleteStore(ctx, field)
-		case "createManager":
-			out.Values[i] = ec._Mutation_createManager(ctx, field)
+		case "createEmployee":
+			out.Values[i] = ec._Mutation_createEmployee(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "updateManager":
-			out.Values[i] = ec._Mutation_updateManager(ctx, field)
-		case "deleteManager":
-			out.Values[i] = ec._Mutation_deleteManager(ctx, field)
-		case "createSalesAssociate":
-			out.Values[i] = ec._Mutation_createSalesAssociate(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updateSalesAssociate":
-			out.Values[i] = ec._Mutation_updateSalesAssociate(ctx, field)
-		case "deleteSalesAssociate":
-			out.Values[i] = ec._Mutation_deleteSalesAssociate(ctx, field)
+		case "updateEmployee":
+			out.Values[i] = ec._Mutation_updateEmployee(ctx, field)
+		case "deleteEmployee":
+			out.Values[i] = ec._Mutation_deleteEmployee(ctx, field)
 		case "createOrder":
 			out.Values[i] = ec._Mutation_createOrder(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -6571,56 +6523,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "manager":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_manager(ctx, field)
-				return res
-			})
-		case "managers":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_managers(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "salesAssociate":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_salesAssociate(ctx, field)
-				return res
-			})
-		case "salesAssociates":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_salesAssociates(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "employee":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -6675,48 +6577,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var salesAssociateImplementors = []string{"SalesAssociate", "Employee"}
-
-func (ec *executionContext) _SalesAssociate(ctx context.Context, sel ast.SelectionSet, obj *model.SalesAssociate) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, salesAssociateImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("SalesAssociate")
-		case "id":
-			out.Values[i] = ec._SalesAssociate_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "storeId":
-			out.Values[i] = ec._SalesAssociate_storeId(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "firstName":
-			out.Values[i] = ec._SalesAssociate_firstName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "lastName":
-			out.Values[i] = ec._SalesAssociate_lastName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6793,6 +6653,43 @@ func (ec *executionContext) _StoreLocation(ctx context.Context, sel ast.Selectio
 			}
 		case "zipCode":
 			out.Values[i] = ec._StoreLocation_zipCode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userImplementors = []string{"User"}
+
+func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *model.User) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("User")
+		case "id":
+			out.Values[i] = ec._User_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "employeeId":
+			out.Values[i] = ec._User_employeeId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "username":
+			out.Values[i] = ec._User_username(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -7139,16 +7036,10 @@ func (ec *executionContext) unmarshalNCustomerInput2githubᚗcomᚋjakewitcher�
 }
 
 func (ec *executionContext) marshalNEmployee2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployee(ctx context.Context, sel ast.SelectionSet, v model.Employee) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._Employee(ctx, sel, v)
+	return ec._Employee(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNEmployee2ᚕgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployeeᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Employee) graphql.Marshaler {
+func (ec *executionContext) marshalNEmployee2ᚕᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployeeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Employee) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -7172,7 +7063,7 @@ func (ec *executionContext) marshalNEmployee2ᚕgithubᚗcomᚋjakewitcherᚋpos
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNEmployee2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployee(ctx, sel, v[i])
+			ret[i] = ec.marshalNEmployee2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployee(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -7183,6 +7074,21 @@ func (ec *executionContext) marshalNEmployee2ᚕgithubᚗcomᚋjakewitcherᚋpos
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNEmployee2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployee(ctx context.Context, sel ast.SelectionSet, v *model.Employee) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Employee(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNEmployeeInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployeeInput(ctx context.Context, v interface{}) (model.EmployeeInput, error) {
+	res, err := ec.unmarshalInputEmployeeInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
@@ -7322,59 +7228,8 @@ func (ec *executionContext) unmarshalNLineItemInput2ᚖgithubᚗcomᚋjakewitche
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNManager2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManager(ctx context.Context, sel ast.SelectionSet, v model.Manager) graphql.Marshaler {
-	return ec._Manager(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNManager2ᚕᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManagerᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Manager) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNManager2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManager(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalNManager2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManager(ctx context.Context, sel ast.SelectionSet, v *model.Manager) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._Manager(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNManagerInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManagerInput(ctx context.Context, v interface{}) (model.ManagerInput, error) {
-	res, err := ec.unmarshalInputManagerInput(ctx, v)
+func (ec *executionContext) unmarshalNLoginInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐLoginInput(ctx context.Context, v interface{}) (model.LoginInput, error) {
+	res, err := ec.unmarshalInputLoginInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -7407,13 +7262,13 @@ func (ec *executionContext) unmarshalNNewCustomerInput2githubᚗcomᚋjakewitche
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewInventoryItemInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewInventoryItemInput(ctx context.Context, v interface{}) (model.NewInventoryItemInput, error) {
-	res, err := ec.unmarshalInputNewInventoryItemInput(ctx, v)
+func (ec *executionContext) unmarshalNNewEmployeeInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewEmployeeInput(ctx context.Context, v interface{}) (model.NewEmployeeInput, error) {
+	res, err := ec.unmarshalInputNewEmployeeInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewManagerInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewManagerInput(ctx context.Context, v interface{}) (model.NewManagerInput, error) {
-	res, err := ec.unmarshalInputNewManagerInput(ctx, v)
+func (ec *executionContext) unmarshalNNewInventoryItemInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewInventoryItemInput(ctx context.Context, v interface{}) (model.NewInventoryItemInput, error) {
+	res, err := ec.unmarshalInputNewInventoryItemInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -7427,13 +7282,13 @@ func (ec *executionContext) unmarshalNNewOrderInput2githubᚗcomᚋjakewitcher�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewSalesAssociateInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewSalesAssociateInput(ctx context.Context, v interface{}) (model.NewSalesAssociateInput, error) {
-	res, err := ec.unmarshalInputNewSalesAssociateInput(ctx, v)
+func (ec *executionContext) unmarshalNNewStoreInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewStoreInput(ctx context.Context, v interface{}) (model.NewStoreInput, error) {
+	res, err := ec.unmarshalInputNewStoreInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewStoreInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewStoreInput(ctx context.Context, v interface{}) (model.NewStoreInput, error) {
-	res, err := ec.unmarshalInputNewStoreInput(ctx, v)
+func (ec *executionContext) unmarshalNNewUserInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐNewUserInput(ctx context.Context, v interface{}) (model.NewUserInput, error) {
+	res, err := ec.unmarshalInputNewUserInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -7493,60 +7348,19 @@ func (ec *executionContext) unmarshalNOrderInput2githubᚗcomᚋjakewitcherᚋpo
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNSalesAssociate2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociate(ctx context.Context, sel ast.SelectionSet, v model.SalesAssociate) graphql.Marshaler {
-	return ec._SalesAssociate(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNSalesAssociate2ᚕᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociateᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SalesAssociate) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNSalesAssociate2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociate(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalNSalesAssociate2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociate(ctx context.Context, sel ast.SelectionSet, v *model.SalesAssociate) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._SalesAssociate(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNSalesAssociateInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociateInput(ctx context.Context, v interface{}) (model.SalesAssociateInput, error) {
-	res, err := ec.unmarshalInputSalesAssociateInput(ctx, v)
+func (ec *executionContext) unmarshalNRefreshTokenInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐRefreshTokenInput(ctx context.Context, v interface{}) (model.RefreshTokenInput, error) {
+	res, err := ec.unmarshalInputRefreshTokenInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNRoles2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐRoles(ctx context.Context, v interface{}) (model.Roles, error) {
+	var res model.Roles
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRoles2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐRoles(ctx context.Context, sel ast.SelectionSet, v model.Roles) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNStore2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStore(ctx context.Context, sel ast.SelectionSet, v model.Store) graphql.Marshaler {
@@ -7633,6 +7447,25 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNUser2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
+	return ec._User(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUserInput2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐUserInput(ctx context.Context, v interface{}) (model.UserInput, error) {
+	res, err := ec.unmarshalInputUserInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -7903,7 +7736,7 @@ func (ec *executionContext) unmarshalOCustomerFilter2ᚖgithubᚗcomᚋjakewitch
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOEmployee2githubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployee(ctx context.Context, sel ast.SelectionSet, v model.Employee) graphql.Marshaler {
+func (ec *executionContext) marshalOEmployee2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐEmployee(ctx context.Context, sel ast.SelectionSet, v *model.Employee) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -7915,13 +7748,6 @@ func (ec *executionContext) marshalOInventoryItem2ᚖgithubᚗcomᚋjakewitcher�
 		return graphql.Null
 	}
 	return ec._InventoryItem(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOManager2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManager(ctx context.Context, sel ast.SelectionSet, v *model.Manager) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Manager(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOManufacturer2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐManufacturer(ctx context.Context, sel ast.SelectionSet, v *model.Manufacturer) graphql.Marshaler {
@@ -7936,13 +7762,6 @@ func (ec *executionContext) marshalOOrder2ᚖgithubᚗcomᚋjakewitcherᚋposᚑ
 		return graphql.Null
 	}
 	return ec._Order(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOSalesAssociate2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐSalesAssociate(ctx context.Context, sel ast.SelectionSet, v *model.SalesAssociate) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._SalesAssociate(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOStore2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐStore(ctx context.Context, sel ast.SelectionSet, v *model.Store) graphql.Marshaler {
@@ -7982,6 +7801,13 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return graphql.MarshalString(*v)
+}
+
+func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋjakewitcherᚋposᚑserverᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

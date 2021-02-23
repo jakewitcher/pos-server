@@ -10,25 +10,23 @@ type ContactInfo {
     emailAddress: String!
 }
 
-interface Employee {
+type User {
     id: ID!
-    storeId: ID!
-    firstName: String!
-    lastName: String!
+    employeeId: ID!
+    username: String!
 }
 
-type Manager implements Employee {
-    id: ID!
-    storeId: ID!
-    firstName: String!
-    lastName: String!
+enum Roles {
+    MANAGER
+    SALES_ASSOCIATE
 }
 
-type SalesAssociate implements Employee {
+type Employee {
     id: ID!
     storeId: ID!
     firstName: String!
     lastName: String!
+    role: Roles!
 }
 
 type InventoryItem {
@@ -61,7 +59,7 @@ type Order {
     id: ID!
     storeId: ID!
     customer: Customer!
-    salesAssociate: SalesAssociate!
+    salesAssociate: Employee!
     lineItems: [LineItem!]!
 }
 
@@ -90,17 +88,34 @@ type Query {
     store(input: ID!): Store
     stores(input: StoreFilter): [Store!]!
 
-    manager(input: ID!): Manager
-    managers: [Manager!]!
-
-    salesAssociate(input: ID!): SalesAssociate
-    salesAssociates: [SalesAssociate!]!
-
     employee(input: ID!): Employee
     employees: [Employee!]!
 
     order(input: ID!): Order
     orders: [Order!]!
+}
+
+input NewUserInput {
+    employeeId: ID!
+    username: String!
+    password: String!
+}
+
+input UserInput {
+    id: ID!
+    employeeId: ID!
+    username: String!
+    currentPassword: String!
+    newPassword: String
+}
+
+input LoginInput {
+    username: String!
+    password: String!
+}
+
+input RefreshTokenInput {
+    token: String!
 }
 
 input NewCustomerInput {
@@ -139,34 +154,19 @@ input StoreLocationInput {
     zipCode: String!
 }
 
-input NewManagerInput {
+input NewEmployeeInput {
     storeId: ID!
     firstName: String!
     lastName: String!
-    password: String!
+    role: Roles!
 }
 
-input ManagerInput {
+input EmployeeInput {
     id: ID!
     storeId: ID!
     firstName: String!
     lastName: String!
-    password: String!
-}
-
-input NewSalesAssociateInput {
-    storeId: ID!
-    firstName: String!
-    lastName: String!
-    password: String!
-}
-
-input SalesAssociateInput {
-    id: ID!
-    storeId: ID!
-    firstName: String!
-    lastName: String!
-    password: String!
+    role: Roles!
 }
 
 input NewOrderInput {
@@ -215,6 +215,13 @@ input ManufacturerInput {
 }
 
 type Mutation {
+    createUser(input: NewUserInput!): User!
+    updateUser(input: UserInput!): User
+    deleteUser(input: ID!): User
+
+    login(input: LoginInput!): String!
+    refreshToken(input: RefreshTokenInput!): String!
+
     createCustomer(input: NewCustomerInput!): Customer!
     updateCustomer(input: CustomerInput!): Customer
     deleteCustomer(input: ID!): Customer
@@ -223,13 +230,9 @@ type Mutation {
     updateStore(input: StoreInput!): Store
     deleteStore(input: ID!): Store
 
-    createManager(input: NewManagerInput!): Manager!
-    updateManager(input: ManagerInput!): Manager
-    deleteManager(input: ID!): Manager
-
-    createSalesAssociate(input: NewSalesAssociateInput!): SalesAssociate!
-    updateSalesAssociate(input: SalesAssociateInput!): SalesAssociate
-    deleteSalesAssociate(input: ID!): SalesAssociate
+    createEmployee(input: NewEmployeeInput!): Employee!
+    updateEmployee(input: EmployeeInput!): Employee
+    deleteEmployee(input: ID!): Employee
 
     createOrder(input: NewOrderInput!): Order!
     updateOrder(input: OrderInput!): Order

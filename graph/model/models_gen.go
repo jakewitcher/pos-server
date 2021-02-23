@@ -2,9 +2,11 @@
 
 package model
 
-type Employee interface {
-	IsEmployee()
-}
+import (
+	"fmt"
+	"io"
+	"strconv"
+)
 
 type ContactInfo struct {
 	PhoneNumber  string `json:"phoneNumber"`
@@ -36,6 +38,22 @@ type CustomerInput struct {
 	ContactInfo *ContactInfoInput `json:"contactInfo"`
 }
 
+type Employee struct {
+	ID        string `json:"id"`
+	StoreID   string `json:"storeId"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Role      Roles  `json:"role"`
+}
+
+type EmployeeInput struct {
+	ID        string `json:"id"`
+	StoreID   string `json:"storeId"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Role      Roles  `json:"role"`
+}
+
 type InventoryItem struct {
 	ID           string        `json:"id"`
 	Description  string        `json:"description"`
@@ -64,21 +82,9 @@ type LineItemInput struct {
 	Quantity    int     `json:"quantity"`
 }
 
-type Manager struct {
-	ID        string `json:"id"`
-	StoreID   string `json:"storeId"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-}
-
-func (Manager) IsEmployee() {}
-
-type ManagerInput struct {
-	ID        string `json:"id"`
-	StoreID   string `json:"storeId"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Password  string `json:"password"`
+type LoginInput struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 type Manufacturer struct {
@@ -97,18 +103,18 @@ type NewCustomerInput struct {
 	ContactInfo *ContactInfoInput `json:"contactInfo"`
 }
 
+type NewEmployeeInput struct {
+	StoreID   string `json:"storeId"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Role      Roles  `json:"role"`
+}
+
 type NewInventoryItemInput struct {
 	Description  string             `json:"description"`
 	Cost         float64            `json:"cost"`
 	Retail       float64            `json:"retail"`
 	Manufacturer *ManufacturerInput `json:"manufacturer"`
-}
-
-type NewManagerInput struct {
-	StoreID   string `json:"storeId"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Password  string `json:"password"`
 }
 
 type NewManufacturerInput struct {
@@ -122,24 +128,23 @@ type NewOrderInput struct {
 	LineItems        []*LineItemInput `json:"lineItems"`
 }
 
-type NewSalesAssociateInput struct {
-	StoreID   string `json:"storeId"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Password  string `json:"password"`
-}
-
 type NewStoreInput struct {
 	Name     string              `json:"name"`
 	Location *StoreLocationInput `json:"location"`
 }
 
+type NewUserInput struct {
+	EmployeeID string `json:"employeeId"`
+	Username   string `json:"username"`
+	Password   string `json:"password"`
+}
+
 type Order struct {
-	ID             string          `json:"id"`
-	StoreID        string          `json:"storeId"`
-	Customer       *Customer       `json:"customer"`
-	SalesAssociate *SalesAssociate `json:"salesAssociate"`
-	LineItems      []*LineItem     `json:"lineItems"`
+	ID             string      `json:"id"`
+	StoreID        string      `json:"storeId"`
+	Customer       *Customer   `json:"customer"`
+	SalesAssociate *Employee   `json:"salesAssociate"`
+	LineItems      []*LineItem `json:"lineItems"`
 }
 
 type OrderInput struct {
@@ -150,21 +155,8 @@ type OrderInput struct {
 	LineItems        []*LineItemInput `json:"lineItems"`
 }
 
-type SalesAssociate struct {
-	ID        string `json:"id"`
-	StoreID   string `json:"storeId"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-}
-
-func (SalesAssociate) IsEmployee() {}
-
-type SalesAssociateInput struct {
-	ID        string `json:"id"`
-	StoreID   string `json:"storeId"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Password  string `json:"password"`
+type RefreshTokenInput struct {
+	Token string `json:"token"`
 }
 
 type Store struct {
@@ -197,4 +189,59 @@ type StoreLocationInput struct {
 	City    string `json:"city"`
 	State   string `json:"state"`
 	ZipCode string `json:"zipCode"`
+}
+
+type User struct {
+	ID         string `json:"id"`
+	EmployeeID string `json:"employeeId"`
+	Username   string `json:"username"`
+}
+
+type UserInput struct {
+	ID              string  `json:"id"`
+	EmployeeID      string  `json:"employeeId"`
+	Username        string  `json:"username"`
+	CurrentPassword string  `json:"currentPassword"`
+	NewPassword     *string `json:"newPassword"`
+}
+
+type Roles string
+
+const (
+	RolesManager        Roles = "MANAGER"
+	RolesSalesAssociate Roles = "SALES_ASSOCIATE"
+)
+
+var AllRoles = []Roles{
+	RolesManager,
+	RolesSalesAssociate,
+}
+
+func (e Roles) IsValid() bool {
+	switch e {
+	case RolesManager, RolesSalesAssociate:
+		return true
+	}
+	return false
+}
+
+func (e Roles) String() string {
+	return string(e)
+}
+
+func (e *Roles) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = Roles(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid Roles", str)
+	}
+	return nil
+}
+
+func (e Roles) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
