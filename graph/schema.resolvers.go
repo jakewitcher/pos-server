@@ -13,7 +13,7 @@ import (
 )
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUserInput) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	return datastore.Users.CreateUser(input)
 }
 
 func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UserInput) (*model.User, error) {

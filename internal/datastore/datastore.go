@@ -36,4 +36,5 @@ type EmployeeProvider interface {
 }
 
 type UserProvider interface {
+	CreateUser(newUser model.NewUserInput) (*model.User, error)
 }

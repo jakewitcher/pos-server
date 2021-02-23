@@ -8,5 +8,5 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/mattn/go-sqlite3 v1.14.6
 	github.com/vektah/gqlparser/v2 v2.1.0
-	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
+	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 )

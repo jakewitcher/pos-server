@@ -6,6 +6,7 @@ const (
 	Customer = "Customer"
 	Store    = "Store"
 	Employee = "Employee"
+	User     = "User"
 )
 
 var (
